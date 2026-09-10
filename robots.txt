@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /register.html
+
+Sitemap: https://rm-workforce.vercel.app/sitemap.xml
