@@ -18,11 +18,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Bitte gib eine gültige E-Mail-Adresse ein.' });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!supabaseUrl || !publishableKey) {
-    return res.status(500).json({ error: 'Die Abmeldung ist vorübergehend nicht erreichbar.' });
-  }
+  const supabaseUrl = 'https://lzdnddavnhtacrcwaxqh.supabase.co';
+  const publishableKey = 'sb_publishable_ZRm991tFOTNJAoBtO3obAQ_p_yCG3Ug';
 
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/marketing_unsubscribes`, {
