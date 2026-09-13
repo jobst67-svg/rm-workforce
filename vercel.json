@@ -23,6 +23,10 @@
     {
       "source": "/impressum.html",
       "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
+    },
+    {
+      "source": "/email-abmelden.html",
+      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
     }
   ]
 }
