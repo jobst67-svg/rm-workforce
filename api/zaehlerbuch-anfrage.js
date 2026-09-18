@@ -1,4 +1,10 @@
-const EMAIL_PATTERN=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+function isValidEmail(value){
+  if(!value || value.length>254 || /\s/.test(value)) return false;
+  const at=value.lastIndexOf('@');
+  if(at<=0 || at===value.length-1) return false;
+  const domain=value.slice(at+1);
+  return domain.includes('.') && !domain.startsWith('.') && !domain.endsWith('.');
+}
 
 export default async function handler(req,res){
   res.setHeader('Cache-Control','no-store');
@@ -16,7 +22,7 @@ export default async function handler(req,res){
 
   if(website)return res.status(200).json({ok:true});
   if(!name||name.length>100)return res.status(400).json({error:'Bitte geben Sie Ihren Namen ein.'});
-  if(!EMAIL_PATTERN.test(email)||email.length>254)return res.status(400).json({error:'Bitte geben Sie eine gültige E-Mail-Adresse ein.'});
+  if(!isValidEmail(email))return res.status(400).json({error:'Bitte geben Sie eine gültige E-Mail-Adresse ein.'});
   if(company.length>140||phone.length>60||message.length>3000)return res.status(400).json({error:'Eine Eingabe ist zu lang.'});
 
   const apiKey=process.env.RESEND_API_KEY;
