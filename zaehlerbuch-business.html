@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zählerbuch Business – Technische Dokumentation | RM Workforce</title>
+<meta name="description" content="Technische Dokumentation der mobilen Zählererfassung für Wasser, Strom und Gas mit Barcode, Foto, GPS, PDF- und Excel-Export.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://rm-workforce.vercel.app/zaehlerbuch-business.html">
+<meta name="theme-color" content="#0b0b0b">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}html,body{margin:0;min-height:100%}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(circle at 50% 0,#161616 0,#090909 52%,#000 100%);color:#fff;line-height:1.65}
+.page{min-height:100vh;display:flex;flex-direction:column}.wrap{width:min(1080px,94vw);margin:0 auto;padding:20px 18px 48px}
+.topbar{display:flex;align-items:center;gap:24px;margin-bottom:28px}.brand img{display:block;width:118px;height:74px;object-fit:contain}
+.nav{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;background:#151515;border:1px solid #3c3c3c;color:#eee;text-decoration:none;font-weight:750}.nav a:hover{border-color:#1ba7e1;color:#61c9f2}
+.hero{background:linear-gradient(135deg,#0d1b2a,#0c1420);border:1px solid #1f4a6a;border-radius:26px;padding:30px;margin-bottom:22px}
+.eyebrow{color:#61c9f2;font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.82rem}.hero h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:.25em 0}.hero p{max-width:850px;color:#c9d6df;font-size:1.08rem}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border-radius:14px;text-decoration:none;font-weight:850;border:1px solid transparent}.btn-primary{background:linear-gradient(135deg,#173e6b,#159dd0);color:white}.btn-secondary{background:#151515;border-color:#3a5c72;color:#d9eff8}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0}.card{background:#0d1b2a;border:1px solid #18314d;border-radius:20px;padding:22px}.card h2,.card h3{margin-top:0}.card h2{color:#fff}.card h3{color:#70c9ef}.card p,.card li{color:#c9d4dc}.card ul{padding-left:20px;margin-bottom:0}
+.section{margin-top:28px}.section>h2{font-size:1.7rem;margin-bottom:12px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.step{background:#101820;border:1px solid #294257;border-radius:16px;padding:16px;text-align:center;font-weight:750;color:#dfe9ef}.step b{display:block;color:#61c9f2;margin-bottom:4px}
+.table{width:100%;border-collapse:collapse;background:#0d1b2a;border:1px solid #18314d;border-radius:18px;overflow:hidden}.table th,.table td{padding:13px 14px;border-bottom:1px solid #18314d;text-align:left;vertical-align:top}.table th{color:#8ed8f4;background:#10243a}.table td{color:#d2dde4}.table tr:last-child td{border-bottom:0}
+.notice{background:#151a20;border-left:4px solid #159dd0;border-radius:12px;padding:16px 18px;color:#d5e2ea;margin-top:18px}
+.form-card{background:linear-gradient(135deg,#10243a,#0d1b2a);border:1px solid #24557a;border-radius:24px;padding:26px;margin-top:34px}.form-card h2{margin:0 0 6px}.form-card>p{color:#c7d7e2;margin-top:0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-weight:750;color:#e9f4fa}.field input,.field textarea{width:100%;border:1px solid #3b586c;border-radius:12px;background:#0b1117;color:#fff;padding:13px 14px;font:inherit;outline:none}.field textarea{min-height:130px;resize:vertical}.field input:focus,.field textarea:focus{border-color:#38b7ea;box-shadow:0 0 0 3px rgba(56,183,234,.14)}
+.honey{position:absolute;left:-10000px;opacity:0}.submit{margin-top:16px;border:0;cursor:pointer}.status{margin-top:12px;min-height:24px;font-weight:700}.status.ok{color:#71df9b}.status.err{color:#ff8a8a}
+.footer{margin-top:auto;padding:28px 16px;text-align:center;font-size:14px}.footer a{color:#9bb4c7;text-decoration:none}.footer span{margin:0 10px;color:#6f7d88}
+@media(max-width:760px){.topbar{align-items:flex-start;gap:12px}.brand img{width:88px;height:58px}.nav{gap:8px}.nav a{padding:0 12px;min-height:40px;font-size:.92rem}.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media(max-width:520px){.topbar{flex-direction:column}.nav{margin-left:0;justify-content:flex-start}.brand img{width:110px}.flow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+<div class="wrap">
+<header class="topbar">
+<a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="Real Mobile Workforce"></a>
+<nav class="nav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a></nav>
+</header>
+
+<section class="hero">
+<div class="eyebrow">Zählerbuch Business</div>
+<h1>Mobile Zählererfassung für Versorger &amp; Außendienst</h1>
+<p>Praxisnahe Erfassung von Wasser-, Strom- und Gaszählern direkt vor Ort – mit Barcode, Pflichtfotos, optionalem GPS, PDF-Belegen, Tages-Excel und vorbereitetem Büro-Import.</p>
+<div class="actions"><a class="btn btn-primary" href="#anfrage">Projekt anfragen</a><a class="btn btn-secondary" href="#technik">Technische Dokumentation</a></div>
+</section>
+
+<section id="technik" class="section">
+<h2>Technische Dokumentation</h2>
+<div class="grid">
+<article class="card"><h3>Erfassung vor Ort</h3><ul><li>Wasser, Strom und Gas</li><li>Zählernummer manuell oder per Barcode</li><li>Zählerstand numerisch und einzeilig</li><li>Taschenlampe direkt an der Eingabe</li><li>Optionale GPS-Koordinaten</li></ul></article>
+<article class="card"><h3>Fotodokumentation</h3><ul><li>ET: ein Pflichtbild</li><li>DT: zwei Pflichtbilder</li><li>HT- und NT-Kennzeichnung direkt im Bild</li><li>Foto-Vorschau mit OK oder Wiederholen</li><li>Zoombare Bildvorschau</li></ul></article>
+<article class="card"><h3>Barcode &amp; Kamera</h3><ul><li>CameraX-basierte Erfassung</li><li>Animierter Scanbereich</li><li>Abbrechen links, Taschenlampe rechts</li><li>Großer roter Kamera-Auslöser</li><li>Bildorientierung wird beim Export korrigiert</li></ul></article>
+<article class="card"><h3>Lokale Zählerstämme</h3><ul><li>Dauerhaft: Medium, Zählernummer, Adresse, optional GPS</li><li>Keine alten Stände oder Fotos nach Tagesabschluss</li><li>Suche nach Adresse und Zählernummer</li><li>Bearbeiten und Löschen direkt in der Suche</li><li>GPS-Treffer öffnet Google Maps</li></ul></article>
+</div>
+</section>
+
+<section class="section">
+<h2>Tagesablauf</h2>
+<div class="flow">
+<div class="step"><b>1</b>Zähler erfassen</div><div class="step"><b>2</b>PDF je Zähler</div><div class="step"><b>3</b>Tages-Excel senden</div><div class="step"><b>4</b>Tagesabschluss</div>
+</div>
+<div class="notice">Der Tagesabschluss wird erst freigeschaltet, wenn alle Einzel-PDFs und die Tages-Excel an die vorgesehene Übergabe übergeben wurden. Danach werden temporäre Messwerte, Fotos und Exportdateien vom Gerät entfernt; die Zählerstämme bleiben erhalten.</div>
+</section>
+
+<section class="section">
+<h2>PDF- und Excel-Ausgabe</h2>
+<table class="table">
+<tr><th>Ausgabe</th><th>Inhalt</th></tr>
+<tr><td>Einzel-PDF</td><td>Medium, Adresse, Zählernummer, Tarif/ET-DT, Zählerstand bzw. HT/NT, Ablesedatum, Mitarbeiter, Bemerkung, optional GPS und Pflichtbilder.</td></tr>
+<tr><td>Tages-Excel</td><td>Alle Zähler des Arbeitstages in einer zentralen XLSX-Datei mit Adresse, Zählernummer, Werten, Datum, Mitarbeiterdaten, optional GPS und Bemerkung.</td></tr>
+<tr><td>Versand</td><td>PDF und Tages-Excel können an eine fest definierte Empfängeradresse übergeben werden.</td></tr>
+</table>
+</section>
+
+<section class="section">
+<h2>Büro-Import per Master-Excel</h2>
+<div class="card">
+<p>Für den Büroarbeitsplatz ist eine Master-Excel mit Importmakro vorgesehen. Die am Abend eingehenden Tagesdateien werden in einen gemeinsamen Ordner gespeichert. Anschließend genügt ein Klick auf den Import-Button.</p>
+<ul>
+<li>Ordnerimport für mehrere Tagesdateien gleichzeitig</li>
+<li>Nur noch fehlende Zählerzeilen werden übernommen</li>
+<li>Vorhandene Datensätze werden als Dubletten übersprungen</li>
+<li>Wird eine Zeile im Master gelöscht, kann sie beim nächsten Import erneut eingelesen werden</li>
+<li>Importprotokoll dokumentiert neue und übersprungene Datensätze</li>
+</ul>
+</div>
+</section>
+
+<section class="section">
+<h2>Mitarbeiter &amp; Sicherheit</h2>
+<div class="grid">
+<article class="card"><h3>Mitarbeiterprofil</h3><p>Beim ersten Einrichten werden Name, Mitarbeiternummer und Kontaktdaten erfasst. In der Präsentationsversion ist der Login bewusst vereinfacht; produktiv ist ein selbst vergebenes Passwort mit Buchstaben, Zahlen und Sonderzeichen vorgesehen.</p></article>
+<article class="card"><h3>Datenhaltung</h3><p>Die Lösung ist offline nutzbar. Zählerstämme werden lokal gehalten. Tagesbezogene Mess- und Bilddaten werden nach erfolgreichem Abschluss bereinigt. Eine zentrale Datenbankanbindung kann optional ergänzt werden.</p></article>
+</div>
+</section>
+
+<section class="section">
+<h2>Optionale zentrale Datenbankanbindung</h2>
+<div class="card"><p>Die Architektur kann um eine zentrale API bzw. Datenbank erweitert werden. Damit sind unter anderem zentrale Aufträge, Synchronisation, Benutzer- und Rechteverwaltung, serverseitiger Versand, Quittierungen und eine webbasierte Bürooberfläche möglich. Die konkrete Ausprägung wird an den vorhandenen betrieblichen Ablauf angepasst.</p></div>
+</section>
+
+<section id="anfrage" class="form-card">
+<h2>Haben wir Ihr Interesse geweckt?</h2>
+<p>Beschreiben Sie kurz Ihren Einsatzzweck. Die Anfrage wird direkt an RM Workforce übermittelt.</p>
+<form id="projectForm">
+<div class="form-grid">
+<div class="field"><label for="name">Name *</label><input id="name" name="name" maxlength="100" required autocomplete="name"></div>
+<div class="field"><label for="company">Firma / Organisation</label><input id="company" name="company" maxlength="140" autocomplete="organization"></div>
+<div class="field"><label for="email">E-Mail *</label><input id="email" name="email" type="email" maxlength="254" required autocomplete="email"></div>
+<div class="field"><label for="phone">Telefon</label><input id="phone" name="phone" maxlength="60" autocomplete="tel"></div>
+<div class="field full"><label for="message">Projekt / Anforderungen</label><textarea id="message" name="message" maxlength="3000" placeholder="Zum Beispiel Anzahl Mitarbeiter, Zählerarten, gewünschter Export oder Datenbankanbindung."></textarea></div>
+<div class="honey" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+</div>
+<button id="submitBtn" class="btn btn-primary submit" type="submit">Projekt anfragen</button>
+<div id="formStatus" class="status" role="status" aria-live="polite"></div>
+</form>
+</section>
+</div>
+<footer class="footer"><a href="/datenschutz.html">Datenschutz</a><span>·</span><a href="/agb.html">AGB</a><span>·</span><a href="/impressum.html">Impressum</a></footer>
+</main>
+<script>
+const form=document.getElementById('projectForm'),statusEl=document.getElementById('formStatus'),btn=document.getElementById('submitBtn');
+form.addEventListener('submit',async e=>{
+ e.preventDefault();statusEl.className='status';statusEl.textContent='Anfrage wird gesendet …';btn.disabled=true;
+ const data=Object.fromEntries(new FormData(form).entries());
+ try{
+  const r=await fetch('/api/zaehlerbuch-anfrage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||'Versand fehlgeschlagen.');
+  statusEl.className='status ok';statusEl.textContent='Vielen Dank. Ihre Anfrage wurde übermittelt.';form.reset();
+ }catch(err){statusEl.className='status err';statusEl.textContent=err.message||'Die Anfrage konnte nicht gesendet werden.'}
+ finally{btn.disabled=false}
+});
+</script>
+</body></html>
