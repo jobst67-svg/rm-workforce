@@ -123,7 +123,7 @@
     <div class="toolbar">
       <button id="xlsxBtn" class="primary">Excel herunterladen</button>
       <button id="pdfPreviewBtn">PDF Vorschau</button>
-      <button id="pdfAllBtn" class="blue">Gesamt-PDF herunterladen</button>
+      <button id="pdfAllBtn" class="blue">Download Monat</button>
     </div>
   </div>
 
@@ -856,6 +856,18 @@ $("#acc_save_btn").onclick=async()=>{
 };
 $("#acc_upload_btn").onclick=uploadAccidentImages;
 
+function monthLabelDE(value){
+  if(!value) return "Monat";
+  const [year,month]=value.split("-").map(Number);
+  return new Intl.DateTimeFormat("de-DE",{month:"long",year:"numeric"})
+    .format(new Date(year,month-1,1));
+}
+
+function updatePdfAllButtonLabel(){
+  const month=$("#monthFilter").value;
+  $("#pdfAllBtn").textContent=month ? `Download ${monthLabelDE(month)}` : "Download Monat";
+}
+
 function pdfText(v){
   return String(v??"")
     .replace(/→/g,"->")
@@ -957,13 +969,16 @@ function previewPdf(){
 }
 
 function downloadAllPdf(){
-  const trips=state.trips.filter(t=>t.ended_at);
-  if(!trips.length) return toast("Keine Fahrten für den Gesamt-PDF.");
-  const doc=buildVehiclePdf(trips,"ELKO-TOURS Gesamtfahrtenbuch");
-  const dates=trips.map(t=>new Date(t.started_at)).sort((a,b)=>a-b);
-  const from=`${dates[0].getFullYear()}-${String(dates[0].getMonth()+1).padStart(2,"0")}`;
-  const to=`${dates[dates.length-1].getFullYear()}-${String(dates[dates.length-1].getMonth()+1).padStart(2,"0")}`;
-  doc.save(`ELKO_Gesamtfahrtenbuch_${from}_bis_${to}.pdf`);
+  const month=$("#monthFilter").value;
+  if(!month) return toast("Bitte zuerst einen Monat auswählen.");
+
+  const trips=state.trips.filter(t=>t.ended_at && monthKey(t.started_at)===month);
+  if(!trips.length) return toast(`Keine Fahrten für ${monthLabelDE(month)} vorhanden.`);
+
+  const label=monthLabelDE(month);
+  const doc=buildVehiclePdf(trips,`ELKO-TOURS Gesamtfahrtenbuch · ${label}`);
+  const safeLabel=label.replace(/\s+/g,"_");
+  doc.save(`ELKO_Gesamtfahrtenbuch_${safeLabel}.pdf`);
 }
 
 function exportXlsx(){
@@ -984,12 +999,13 @@ $("#xlsxBtn").onclick=exportXlsx;
 $("#pdfPreviewBtn").onclick=previewPdf;
 $("#pdfAllBtn").onclick=downloadAllPdf;
 $("#refreshBtn").onclick=loadAll; $("#manageBtn").onclick=()=>{$("#manageDialog").showModal();renderManage()};
-$("#monthFilter").onchange=render; $("#vehicleFilter").onchange=()=>{updateVehicleFilterStyle();render();}; $("#driverFilter").onchange=render;
-$("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;updateVehicleFilterStyle();render()};
+$("#monthFilter").onchange=()=>{updatePdfAllButtonLabel();render();}; $("#vehicleFilter").onchange=()=>{updateVehicleFilterStyle();render();}; $("#driverFilter").onchange=render;
+$("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;updateVehicleFilterStyle();updatePdfAllButtonLabel();render()};
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;renderManage()});
 
 const now=new Date();
 $("#monthFilter").value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+updatePdfAllButtonLabel();
 
 realtimeClient
   .channel("elko-vehicle-live")
