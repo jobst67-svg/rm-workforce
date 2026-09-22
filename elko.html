@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>ELKO-TOURS · Büro</title>
+  <style>
+    :root{
+      --bg:#0d1316; --panel:#172126; --panel2:#1f2b31; --line:#2b3a41;
+      --text:#f4f7f8; --muted:#9fb0b8; --green:#21a657; --green2:#133c25;
+      --blue:#2f7ddd; --red:#d64b45; --amber:#dca93a; --white:#fff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1114,#10181c);color:var(--text);
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1500px;margin:auto;padding:22px}
+    header{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .brand h1{margin:0;font-size:28px;letter-spacing:.02em}.brand p{margin:5px 0 0;color:var(--muted)}
+    .badge{padding:8px 12px;border-radius:999px;background:#342b11;color:#ffd86b;font-weight:800;font-size:12px}
+    .toolbar,.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button,select,input{border:1px solid var(--line);background:var(--panel2);color:var(--text);
+      border-radius:12px;padding:11px 13px;font:inherit}
+    button{cursor:pointer;font-weight:800} button:hover{filter:brightness(1.08)}
+    .primary{background:var(--green);border-color:var(--green)} .blue{background:var(--blue);border-color:var(--blue)}
+    .danger{background:var(--red);border-color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+    .card{background:rgba(23,33,38,.96);border:1px solid var(--line);border-radius:18px;padding:18px}
+    .metric .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+    .metric .value{font-size:32px;font-weight:900;margin-top:7px}.metric .sub{color:var(--muted);margin-top:5px}
+    .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:26px 0 10px}
+    .section-title h2{font-size:19px;margin:0}.small{font-size:12px;color:var(--muted)}
+    .vehicles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+    .vehicle{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+    .vehicle.active{border-color:#2cb766;box-shadow:0 0 0 1px #2cb76622 inset}
+    .vehicle .top{display:flex;justify-content:space-between;gap:8px}.vehicle strong{font-size:17px}
+    .status{font-size:11px;padding:5px 8px;border-radius:999px;font-weight:900}
+    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}
+    .vehicle .driver{font-size:20px;font-weight:900;margin:14px 0 5px}.vehicle .meta{color:var(--muted);font-size:13px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+    table{width:100%;border-collapse:collapse;min-width:1050px}
+    th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+    th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);position:sticky;top:0;background:#182228}
+    tbody tr:hover{background:#1c282e}.num{text-align:right;font-variant-numeric:tabular-nums}
+    .empty{padding:28px;color:var(--muted);text-align:center}
+    dialog{width:min(650px,94vw);border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);padding:0}
+    dialog::backdrop{background:#000a}.dialog-body{padding:20px}.dialog-body h3{margin-top:0}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-grid .full{grid-column:1/-1}
+    .dialog-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+    .tabs{display:flex;gap:8px;margin:12px 0}.tab{background:#1d292f}.tab.active{background:var(--blue)}
+    .list{display:grid;gap:8px}.rowcard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#131c20}
+    .rowcard .actions{display:flex;gap:7px}.rowcard button{padding:7px 10px;font-size:12px}
+    .toast{position:fixed;right:18px;bottom:18px;background:#10181c;border:1px solid var(--line);padding:13px 16px;border-radius:12px;box-shadow:0 10px 35px #0008;display:none;z-index:100}
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)} header{align-items:flex-start;flex-direction:column}}
+    @media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.form-grid{grid-template-columns:1fr}}
+    @media print{
+      body{background:#fff;color:#000}.toolbar,.filters,.badge,.vehicles,.metric,.tabs,#manageBtn{display:none!important}
+      .wrap{max-width:none;padding:0}.card,.table-wrap{border:0;background:#fff}.section-title{margin-top:0}
+      table{min-width:0;font-size:10px}th,td{color:#000;border-color:#aaa;padding:6px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>ELKO-TOURS · Fahrtenbuch Büro</h1>
+      <p>Fuhrpark, Fahrer, Tagestouren und Monatsauswertung</p>
+    </div>
+    <div class="toolbar">
+      <span class="badge">TESTBETRIEB · RM WORKFORCE SUPABASE</span>
+      <button id="refreshBtn">↻ Aktualisieren</button>
+      <button class="blue" id="manageBtn">Verwalten</button>
+    </div>
+  </header>
+
+  <section class="grid">
+    <div class="card metric"><div class="label">Fahrzeuge</div><div id="vehicleCount" class="value">–</div><div class="sub">aktiv im Fuhrpark</div></div>
+    <div class="card metric"><div class="label">Aktuell besetzt</div><div id="activeVehicleCount" class="value">–</div><div class="sub">Fahrer am Fahrzeug</div></div>
+    <div class="card metric"><div class="label">Touren im Monat</div><div id="tripCount" class="value">–</div><div class="sub">abgeschlossen</div></div>
+    <div class="card metric"><div class="label">Gesamt-km Monat</div><div id="kmTotal" class="value">–</div><div class="sub">alle Fahrzeuge</div></div>
+  </section>
+
+  <div class="section-title">
+    <h2>Fahrzeugstatus</h2>
+    <div class="small">Aktueller Fahrer wird zentral aus Supabase angezeigt</div>
+  </div>
+  <section id="vehicles" class="vehicles"></section>
+
+  <div class="section-title">
+    <h2>Monatsfahrten</h2>
+    <div class="toolbar">
+      <button id="xlsxBtn" class="primary">Excel herunterladen</button>
+      <button id="printBtn">Drucken / PDF</button>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="filters">
+      <label>Monat <input type="month" id="monthFilter"></label>
+      <label>Fahrzeug <select id="vehicleFilter"><option value="">Alle Fahrzeuge</option></select></label>
+      <label>Fahrer <select id="driverFilter"><option value="">Alle Fahrer</option></select></label>
+      <button id="clearFilters">Filter zurücksetzen</button>
+    </div>
+  </section>
+
+  <div class="table-wrap" style="margin-top:12px">
+    <table>
+      <thead>
+        <tr>
+          <th>Datum</th><th>Fahrer</th><th>Fahrzeug</th><th>Fahrstrecke</th><th>Sonderziele</th>
+          <th class="num">Endstand</th><th class="num">Anfangsstand</th>
+          <th class="num">Linien-km</th><th class="num">Sonder-km</th><th class="num">Gesamt-km</th>
+        </tr>
+      </thead>
+      <tbody id="tripRows"></tbody>
+    </table>
+    <div id="emptyTrips" class="empty" style="display:none">Keine Fahrten für den gewählten Zeitraum.</div>
+  </div>
+</div>
+
+<dialog id="manageDialog">
+  <div class="dialog-body">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+      <h3>ELKO-TOURS verwalten</h3><button onclick="manageDialog.close()">✕</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="drivers">Fahrer</button>
+      <button class="tab" data-tab="vehicles">Fahrzeuge</button>
+      <button class="tab" data-tab="routes">Standardrouten</button>
+    </div>
+    <div id="manageContent"></div>
+  </div>
+</dialog>
+
+<dialog id="formDialog">
+  <form method="dialog" class="dialog-body" id="editForm">
+    <h3 id="formTitle">Bearbeiten</h3>
+    <div id="formFields" class="form-grid"></div>
+    <div class="dialog-actions">
+      <button value="cancel">Abbrechen</button>
+      <button type="button" class="primary" id="formSave">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const SUPABASE_URL = "https://lzdnddavnhtacrcwaxqh.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6ZG5kZGF2bmh0YWNyY3dheHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTY3MzUsImV4cCI6MjEwNDg5MjczNX0.dV5t5FBwYdhDByEUn-neX3UsfSVqARelbI7U6GHBgJA";
+
+const state = {drivers:[],vehicles:[],routes:[],trips:[],tab:"drivers"};
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+function toast(msg){
+  const el=$("#toast"); el.textContent=msg; el.style.display="block";
+  clearTimeout(window.__toast); window.__toast=setTimeout(()=>el.style.display="none",2600);
+}
+async function api(path, options={}){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{
+    ...options,
+    headers:{
+      apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`,
+      "Content-Type":"application/json", Accept:"application/json",
+      Prefer:"return=representation", ...(options.headers||{})
+    }
+  });
+  const text=await res.text();
+  if(!res.ok) throw new Error((()=>{try{return JSON.parse(text).message}catch{return text||`HTTP ${res.status}`}})());
+  return text ? JSON.parse(text) : [];
+}
+const mapDriver=id => state.drivers.find(x=>x.id===id)?.name || "–";
+const mapVehicle=id => state.vehicles.find(x=>x.id===id);
+const dateDE=v => new Date(v).toLocaleDateString("de-DE");
+const timeDE=v => new Date(v).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+
+async function loadAll(){
+  try{
+    [state.drivers,state.vehicles,state.routes,state.trips] = await Promise.all([
+      api("elko_drivers?select=*&order=name.asc"),
+      api("elko_vehicles?select=*&order=name.asc"),
+      api("elko_routes?select=*&order=name.asc"),
+      api("elko_trips?select=*&order=started_at.desc&limit=3000")
+    ]);
+    fillFilters(); render(); renderManage();
+  }catch(e){toast("Fehler: "+e.message)}
+}
+function monthKey(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}`; }
+function filteredTrips(){
+  const month=$("#monthFilter").value, veh=$("#vehicleFilter").value, drv=$("#driverFilter").value;
+  return state.trips.filter(t =>
+    (!month || monthKey(t.started_at)===month) &&
+    (!veh || t.vehicle_id===veh) &&
+    (!drv || t.driver_id===drv) &&
+    t.ended_at
+  );
+}
+function fillFilters(){
+  const vf=$("#vehicleFilter"), df=$("#driverFilter"), oldV=vf.value, oldD=df.value;
+  vf.innerHTML='<option value="">Alle Fahrzeuge</option>'+state.vehicles.filter(v=>v.active!==false).map(v=>`<option value="${v.id}">${esc(v.name)} · ${esc(v.plate)}</option>`).join("");
+  df.innerHTML='<option value="">Alle Fahrer</option>'+state.drivers.filter(d=>d.active!==false).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join("");
+  vf.value=oldV; df.value=oldD;
+}
+function render(){
+  const trips=filteredTrips();
+  const activeVehicles=state.vehicles.filter(v=>v.active!==false);
+  $("#vehicleCount").textContent=activeVehicles.length;
+  $("#activeVehicleCount").textContent=activeVehicles.filter(v=>v.current_driver_id).length;
+  $("#tripCount").textContent=trips.length;
+  $("#kmTotal").textContent=trips.reduce((a,t)=>a+(Number(t.total_km)||0),0).toLocaleString("de-DE");
+
+  $("#vehicles").innerHTML=activeVehicles.map(v=>{
+    const driver=v.current_driver_id?mapDriver(v.current_driver_id):"Kein Fahrer";
+    const active=!!v.current_driver_id;
+    const open=state.trips.find(t=>t.vehicle_id===v.id&&!t.ended_at);
+    return `<article class="vehicle ${active?"active":""}">
+      <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${active?"on":"off"}">${active?"BESETZT":"FREI"}</span></div>
+      <div class="driver">${esc(driver)}</div>
+      <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since?`· seit ${timeDE(v.driver_since)}`:""}</div>
+      ${open?`<div class="meta" style="margin-top:7px;color:#76eaa0">Tour läuft · ${esc(open.route_label||"")}</div>`:""}
+    </article>`;
+  }).join("") || '<div class="empty">Keine Fahrzeuge angelegt.</div>';
+
+  const rows=$("#tripRows"); rows.innerHTML=trips.map(t=>{
+    const v=mapVehicle(t.vehicle_id);
+    return `<tr>
+      <td>${dateDE(t.started_at)}</td><td>${esc(mapDriver(t.driver_id))}</td>
+      <td>${esc(v?`${v.name} · ${v.plate}`:"–")}</td>
+      <td><strong>${esc(t.route_label||"–")}</strong></td><td>${esc(t.special_destinations||"")}</td>
+      <td class="num">${Number(t.end_mileage||0).toLocaleString("de-DE")}</td>
+      <td class="num">${Number(t.start_mileage||0).toLocaleString("de-DE")}</td>
+      <td class="num">${Number(t.line_km||0).toLocaleString("de-DE")}</td>
+      <td class="num">${Number(t.special_km||0).toLocaleString("de-DE")}</td>
+      <td class="num"><strong>${Number(t.total_km||0).toLocaleString("de-DE")}</strong></td>
+    </tr>`;
+  }).join("");
+  $("#emptyTrips").style.display=trips.length?"none":"block";
+}
+function renderManage(){
+  const box=$("#manageContent");
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.tab));
+  if(state.tab==="drivers"){
+    box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="driverForm()">+ Fahrer</button></div>
+      <div class="list">${state.drivers.map(d=>`<div class="rowcard"><div><strong>${esc(d.name)}</strong><div class="small">${esc(d.short_code||"")} ${d.active===false?"· gelöscht":""}</div></div>
+      <div class="actions"><button onclick="driverForm('${d.id}')">Bearbeiten</button>${d.active!==false?`<button class="danger" onclick="softDeleteDriver('${d.id}')">Löschen</button>`:""}</div></div>`).join("")}</div>`;
+  }else if(state.tab==="vehicles"){
+    box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="vehicleForm()">+ Fahrzeug</button></div>
+      <div class="list">${state.vehicles.map(v=>`<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km</div></div>
+      <div class="actions"><button onclick="vehicleForm('${v.id}')">Bearbeiten</button></div></div>`).join("")}</div>`;
+  }else{
+    box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="routeForm()">+ Standardroute</button></div>
+      <div class="list">${state.routes.map(r=>{const v=mapVehicle(r.vehicle_id);return `<div class="rowcard"><div><strong>${esc(r.route_label||r.name)}</strong><div class="small">${esc(v?.plate||"alle")} · ${esc(r.start_point)} → ${esc(r.destination)} → ${esc(r.end_point)}</div></div>
+      <div class="actions"><button onclick="routeForm('${r.id}')">Bearbeiten</button></div></div>`}).join("")}</div>`;
+  }
+}
+function openForm(title, fields, save){
+  $("#formTitle").textContent=title;
+  $("#formFields").innerHTML=fields.map(f=>`<label class="${f.full?"full":""}">${esc(f.label)}<input id="f_${f.id}" type="${f.type||"text"}" value="${esc(f.value||"")}"></label>`).join("");
+  $("#formSave").onclick=save; $("#formDialog").showModal();
+}
+function val(id){return $(`#f_${id}`).value.trim();}
+window.driverForm=id=>{
+  const d=state.drivers.find(x=>x.id===id)||{};
+  openForm(id?"Fahrer bearbeiten":"Fahrer anlegen",[
+    {id:"name",label:"Name",value:d.name},{id:"code",label:"Kürzel",value:d.short_code}
+  ],async()=>{try{
+    const body={name:val("name"),short_code:val("code"),active:true};
+    if(!body.name) return toast("Name fehlt");
+    if(id) await api(`elko_drivers?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
+    else await api("elko_drivers",{method:"POST",body:JSON.stringify(body)});
+    $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
+  }catch(e){toast(e.message)}});
+};
+window.softDeleteDriver=async id=>{
+  if(!confirm("Fahrer aus der aktiven Liste entfernen? Historische Fahrten bleiben erhalten.")) return;
+  try{await api(`elko_drivers?id=eq.${id}`,{method:"PATCH",body:JSON.stringify({active:false})}); await loadAll(); toast("Fahrer entfernt.");}catch(e){toast(e.message)}
+};
+window.vehicleForm=id=>{
+  const v=state.vehicles.find(x=>x.id===id)||{};
+  openForm(id?"Fahrzeug bearbeiten":"Fahrzeug anlegen",[
+    {id:"name",label:"Fahrzeug",value:v.name},{id:"plate",label:"Kennzeichen",value:v.plate},
+    {id:"km",label:"Kilometerstand",type:"number",value:v.current_mileage??""}
+  ],async()=>{try{
+    const body={name:val("name"),plate:val("plate"),current_mileage:Number(val("km")||0),active:true};
+    if(!body.name||!body.plate) return toast("Fahrzeug und Kennzeichen fehlen");
+    if(id) await api(`elko_vehicles?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
+    else await api("elko_vehicles",{method:"POST",body:JSON.stringify(body)});
+    $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
+  }catch(e){toast(e.message)}});
+};
+window.routeForm=id=>{
+  const r=state.routes.find(x=>x.id===id)||{};
+  const vOptions=state.vehicles.filter(v=>v.active!==false).map(v=>`<option value="${v.id}" ${v.id===r.vehicle_id?"selected":""}>${esc(v.name)} · ${esc(v.plate)}</option>`).join("");
+  $("#formTitle").textContent=id?"Standardroute bearbeiten":"Standardroute anlegen";
+  $("#formFields").innerHTML=`
+    <label>Fahrzeug<select id="f_vehicle">${vOptions}</select></label>
+    <label>Name<input id="f_name" value="${esc(r.name||"")}"></label>
+    <label>Fahrstrecke / Linie<input id="f_label" value="${esc(r.route_label||"")}"></label>
+    <label>Uhrzeit<input id="f_time" type="time" value="${esc((r.scheduled_time||"").slice(0,5))}"></label>
+    <label>Start<input id="f_start" value="${esc(r.start_point||"")}"></label>
+    <label>Ziel<input id="f_dest" value="${esc(r.destination||"")}"></label>
+    <label>Ende<input id="f_end" value="${esc(r.end_point||"")}"></label>
+    <label>Sonderziele<input id="f_special" value="${esc(r.special_destinations||"")}"></label>`;
+  $("#formSave").onclick=async()=>{try{
+    const body={vehicle_id:$("#f_vehicle").value,name:$("#f_name").value.trim(),route_label:$("#f_label").value.trim(),
+      scheduled_time:$("#f_time").value?$("#f_time").value+":00":null,start_point:$("#f_start").value.trim(),
+      destination:$("#f_dest").value.trim(),end_point:$("#f_end").value.trim(),trip_type:"Linie",
+      purpose:"",special_destinations:$("#f_special").value.trim(),active:true};
+    if(!body.name||!body.route_label||!body.start_point||!body.destination||!body.end_point) return toast("Bitte Pflichtfelder ausfüllen");
+    if(id) await api(`elko_routes?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
+    else await api("elko_routes",{method:"POST",body:JSON.stringify(body)});
+    $("#formDialog").close(); await loadAll(); toast("Standardroute gespeichert.");
+  }catch(e){toast(e.message)}};
+  $("#formDialog").showModal();
+};
+
+function exportXlsx(){
+  const trips=filteredTrips();
+  if(!trips.length) return toast("Keine Daten zum Exportieren.");
+  const rows=trips.map(t=>{const v=mapVehicle(t.vehicle_id);return {
+    Datum:dateDE(t.started_at),Fahrer:mapDriver(t.driver_id),Fahrzeug:v?.name||"",Kennzeichen:v?.plate||"",
+    Fahrstrecke:t.route_label||"",Sonderziele:t.special_destinations||"",
+    Endstand:t.end_mileage||0,Anfangsstand:t.start_mileage||0,
+    "Linien-km":t.line_km||0,"Sonder-km":t.special_km||0,"Gesamt-km":t.total_km||0
+  }});
+  const ws=XLSX.utils.json_to_sheet(rows), wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Fahrten");
+  const month=$("#monthFilter").value||"alle";
+  XLSX.writeFile(wb,`ELKO_Fahrtennachweis_${month}.xlsx`);
+}
+$("#xlsxBtn").onclick=exportXlsx; $("#printBtn").onclick=()=>window.print();
+$("#refreshBtn").onclick=loadAll; $("#manageBtn").onclick=()=>{$("#manageDialog").showModal();renderManage()};
+$("#monthFilter").onchange=render; $("#vehicleFilter").onchange=render; $("#driverFilter").onchange=render;
+$("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;render()};
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;renderManage()});
+
+const now=new Date();
+$("#monthFilter").value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+loadAll();
+setInterval(loadAll,30000);
+</script>
+</body>
+</html>
