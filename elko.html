@@ -45,6 +45,12 @@
     .due-main{font-size:16px;font-weight:900;margin-top:3px}
     .due-meta{margin-top:5px;font-size:13px;color:var(--muted);line-height:1.45}
     .due-phone{display:inline-block;margin-top:6px;color:#93d3ff;font-weight:800;text-decoration:none}
+    .appointment-list{display:grid;gap:6px;margin-top:11px}
+    .appointment-chip{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid var(--line);font-size:12px;font-weight:900}
+    .appointment-chip.future{background:#152a39;border-color:#245a82;color:#a9d9ff}
+    .appointment-chip.due{background:#3a2d12;border-color:#8d6a22;color:#ffd36c}
+    .appointment-chip.overdue{background:#3b1d1b;border-color:#8b3732;color:#ff9a94}
+    .appointment-chip .appointment-date{white-space:nowrap}
     .form-section{margin-top:6px;padding:10px 0 2px;border-top:1px solid var(--line);font-weight:900;color:var(--muted)}
     .rowcard .actions{flex-wrap:wrap}
     .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:26px 0 10px}
@@ -238,6 +244,7 @@
       <button class="tab active" data-tab="drivers">Fahrer</button>
       <button class="tab" data-tab="vehicles">Fahrzeuge</button>
       <button class="tab" data-tab="routes">Standardrouten</button>
+      <button class="tab" data-tab="master">Stammdaten</button>
     </div>
     <div id="manageContent"></div>
   </div>
@@ -368,7 +375,7 @@ const realtimeClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   realtime: { params: { eventsPerSecond: 10 } }
 });
 
-const state = {drivers:[],vehicles:[],routes:[],trips:[],accidents:[],tab:"drivers"};
+const state = {drivers:[],vehicles:[],routes:[],trips:[],accidents:[],masterContacts:[],tab:"drivers"};
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 
@@ -444,6 +451,41 @@ function dueStatusText(value){
   return `fällig in ${diff} Tag${diff===1?"":"en"}`;
 }
 
+function appointmentClass(value){
+  if(!value) return "future";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime())) return "future";
+  const now=Date.now();
+  if(d.getTime()<now) return "overdue";
+  return isVehicleDue(value)?"due":"future";
+}
+
+function vehicleAppointmentHtml(v){
+  const appointments=[
+    ["UVV",v.uvv_due_at],
+    ["Service",v.service_due_at],
+    ["TÜV / HU",v.tuv_due_at]
+  ].filter(([,value])=>value);
+  if(!appointments.length) return "";
+  return `<div class="appointment-list">${appointments.map(([label,value])=>`
+    <div class="appointment-chip ${appointmentClass(value)}">
+      <span>${label} · ${esc(dueStatusText(value))}</span>
+      <span class="appointment-date">${esc(dateDE(value))}</span>
+    </div>`).join("")}</div>`;
+}
+
+function masterById(id){
+  return state.masterContacts.find(x=>x.id===id) || null;
+}
+
+function masterOptions(kind,selectedId){
+  const rows=state.masterContacts
+    .filter(x=>x.kind===kind && (x.active!==false || x.id===selectedId))
+    .slice()
+    .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"de",{sensitivity:"base"}));
+  return '<option value="">Bitte auswählen</option>'+rows.map(x=>`<option value="${x.id}" ${x.id===selectedId?"selected":""}>${esc(x.name)}${x.address?` · ${esc(x.address)}`:""}</option>`).join("");
+}
+
 function dueDateTimeDE(value){
   if(!value) return "Kein Termin hinterlegt";
   const d=new Date(value);
@@ -503,8 +545,11 @@ window.openVehicleDueList=type=>{
     ? vehicles.map(v=>{
         const driver=v.current_driver_id?mapDriver(v.current_driver_id):"Kein Fahrer";
         const meta=vehicleStatusMeta(v);
-        const phone=isUvv?v.uvv_phone:v.service_phone;
-        const contact=isUvv?v.uvv_contact:v.service_workshop;
+        const master=masterById(isUvv?v.uvv_contact_id:v.service_contact_id);
+        const phone=master?.phone || (isUvv?v.uvv_phone:v.service_phone);
+        const contact=master?.name || (isUvv?v.uvv_contact:v.service_workshop);
+        const address=master?.address||"";
+        const person=master?.contact_person||"";
         return `
           <div class="absence-row">
             <div class="small">${vehicleCategoryLabel(v)} · ${esc(meta.label)}</div>
@@ -513,7 +558,9 @@ window.openVehicleDueList=type=>{
               ${Number(v.current_mileage||0).toLocaleString("de-DE")} km · Fahrer: ${esc(driver)}<br>
               <strong>${isUvv?"UVV-Termin":"Service-Termin"}:</strong> ${esc(dueDateTimeDE(v[field]))}<br>
               <strong>Frist:</strong> ${esc(dueStatusText(v[field]))}<br>
-              <strong>${isUvv?"Prüfstelle / Ansprechpartner":"Werkstatt"}:</strong> ${esc(contact||"Nicht hinterlegt")}
+              <strong>${isUvv?"Prüfstelle":"Werkstatt"}:</strong> ${esc(contact||"Nicht hinterlegt")}
+              ${address?`<br><strong>Adresse:</strong> ${esc(address)}`:""}
+              ${person?`<br><strong>Ansprechpartner:</strong> ${esc(person)}`:""}
             </div>
             ${phone?`<a class="due-phone" href="tel:${esc(phoneHref(phone))}">☎ ${esc(phone)}</a>`:'<div class="absence-reason">Keine Telefonnummer hinterlegt.</div>'}
           </div>`;
@@ -559,11 +606,12 @@ function updateVehicleFilterStyle(){
 
 async function loadAll(){
   try{
-    [state.drivers,state.vehicles,state.routes,state.trips] = await Promise.all([
+    [state.drivers,state.vehicles,state.routes,state.trips,state.masterContacts] = await Promise.all([
       api("elko_drivers?select=*&order=name.asc"),
       api("elko_vehicles?select=*&order=name.asc"),
       api("elko_routes?select=*&order=name.asc"),
-      api("elko_trips?select=*&order=started_at.desc&limit=3000")
+      api("elko_trips?select=*&order=started_at.desc&limit=3000"),
+      api("elko_master_contacts?select=*&order=kind.asc,name.asc")
     ]);
     try{
       state.accidents = await api("elko_accidents?select=*");
@@ -651,6 +699,7 @@ function render(){
       <div class="vehicle-category">${category}</div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
+      ${vehicleAppointmentHtml(v)}
       ${open?`<div class="meta" style="margin-top:7px;color:#76eaa0">Tour läuft · ${esc(open.route_label||"")}</div>`:""}
       ${isAccident?`<div class="accident-hint" onclick="event.stopPropagation();openAccident('${v.id}')">Unfalldaten öffnen →</div>`:""}
     </article>`;
@@ -697,16 +746,38 @@ function renderManage(){
         const badgeClass=v.active===false?"deleted":vm.cls==="hu"?"hu":vm.cls==="workshop"?"workshop":vm.cls==="outage"?"outage":"ready";
         const uvvInfo=v.uvv_due_at?` · UVV ${dateDE(v.uvv_due_at)}`:"";
         const serviceInfo=v.service_due_at?` · Service ${dateDE(v.service_due_at)}`:"";
-        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${vehicleCategoryLabel(v)} · ${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}${uvvInfo}${serviceInfo}</div></div>
+        const tuvInfo=v.tuv_due_at?` · TÜV ${dateDE(v.tuv_due_at)}`:"";
+        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${vehicleCategoryLabel(v)} · ${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}${uvvInfo}${serviceInfo}${tuvInfo}</div></div>
         <div class="actions">${v.active!==false
           ? `<button onclick="vehicleForm('${v.id}')">Fahrzeugdaten</button><button class="blue" onclick="assignVehicleForm('${v.id}')">Fahrzeug zuweisen</button><button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`
           : `<button class="blue" onclick="openVehicleArchivePdf('${v.id}')">${v.archive_pdf_url?"Archiv-PDF öffnen":"Archiv-PDF erstellen"}</button>`
         }</div></div>`
       }).join("")}</div>`;
-  }else{
+  }else if(state.tab==="routes"){
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="routeForm()">+ Standardroute</button></div>
       <div class="list">${state.routes.map(r=>{const v=mapVehicle(r.vehicle_id);return `<div class="rowcard"><div><strong>${esc(r.route_label||r.name)}</strong><div class="small">${esc(v?.plate||"alle")} · ${esc(r.start_point)} → ${esc(r.destination)} → ${esc(r.end_point)}</div></div>
       <div class="actions"><button onclick="routeForm('${r.id}')">Bearbeiten</button></div></div>`}).join("")}</div>`;
+  }else{
+    const labels={uvv:"UVV",werkstatt:"Werkstatt",tuev:"TÜV"};
+    const active=state.masterContacts.filter(x=>x.active!==false);
+    box.innerHTML=`
+      <div class="toolbar" style="margin-bottom:12px">
+        <button class="primary" onclick="masterContactForm('uvv')">+ UVV</button>
+        <button class="primary" onclick="masterContactForm('werkstatt')">+ Werkstatt</button>
+        <button class="primary" onclick="masterContactForm('tuev')">+ TÜV</button>
+      </div>
+      <div class="list">${active.length?active.map(m=>`
+        <div class="rowcard">
+          <div>
+            <strong>${esc(m.name)}</strong>
+            <span class="manage-status status ready">${labels[m.kind]||esc(m.kind)}</span>
+            <div class="small">${esc(m.address||"Keine Adresse")}${m.contact_person?` · ${esc(m.contact_person)}`:""}${m.phone?` · ${esc(m.phone)}`:""}${m.email?` · ${esc(m.email)}`:""}</div>
+          </div>
+          <div class="actions">
+            <button onclick="masterContactForm('${m.kind}','${m.id}')">Bearbeiten</button>
+            <button class="danger" onclick="softDeleteMasterContact('${m.id}')">Löschen</button>
+          </div>
+        </div>`).join(""):'<div class="empty">Noch keine Stammdaten angelegt.</div>'}</div>`;
   }
 }
 function openForm(title, fields, save){
@@ -784,28 +855,47 @@ window.vehicleForm=id=>{
 
     <div class="full form-section">UVV</div>
     <label>UVV-Termin<input id="f_uvv_due" type="datetime-local" value="${esc(toLocalDateTimeInput(v.uvv_due_at))}"></label>
-    <label>Prüfstelle / Ansprechpartner<input id="f_uvv_contact" value="${esc(v.uvv_contact||"")}" placeholder="z. B. UVV Prüfstelle"></label>
-    <label class="full">Telefon UVV<input id="f_uvv_phone" type="tel" value="${esc(v.uvv_phone||"")}" placeholder="Telefonnummer"></label>
+    <label>UVV-Prüfstelle
+      <select id="f_uvv_contact_id">${masterOptions("uvv",v.uvv_contact_id)}</select>
+    </label>
 
     <div class="full form-section">Service</div>
     <label>Service-Termin<input id="f_service_due" type="datetime-local" value="${esc(toLocalDateTimeInput(v.service_due_at))}"></label>
-    <label>Werkstatt<input id="f_service_workshop" value="${esc(v.service_workshop||"")}" placeholder="Werkstatt / Ansprechpartner"></label>
-    <label class="full">Telefon Werkstatt<input id="f_service_phone" type="tel" value="${esc(v.service_phone||"")}" placeholder="Telefonnummer"></label>
+    <label>Werkstatt
+      <select id="f_service_contact_id">${masterOptions("werkstatt",v.service_contact_id)}</select>
+    </label>
+
+    <div class="full form-section">TÜV / HU</div>
+    <label>TÜV-/HU-Termin<input id="f_tuv_due" type="datetime-local" value="${esc(toLocalDateTimeInput(v.tuv_due_at))}"></label>
+    <label>TÜV-Prüfstelle
+      <select id="f_tuv_contact_id">${masterOptions("tuev",v.tuv_contact_id)}</select>
+    </label>
   `;
   $("#formSave").onclick=async()=>{try{
     const uvvDue=val("uvv_due");
     const serviceDue=val("service_due");
+    const tuvDue=val("tuv_due");
+    const uvvMaster=masterById($("#f_uvv_contact_id").value);
+    const serviceMaster=masterById($("#f_service_contact_id").value);
+    const tuvMaster=masterById($("#f_tuv_contact_id").value);
     const body={
       name:val("name"),
       plate:val("plate"),
       vehicle_category:$("#f_category").value,
       current_mileage:Number(val("km")||0),
       uvv_due_at:uvvDue?new Date(uvvDue).toISOString():null,
-      uvv_contact:val("uvv_contact"),
-      uvv_phone:val("uvv_phone"),
+      uvv_contact_id:uvvMaster?.id||null,
+      uvv_contact:uvvMaster?.name||"",
+      uvv_phone:uvvMaster?.phone||"",
       service_due_at:serviceDue?new Date(serviceDue).toISOString():null,
-      service_workshop:val("service_workshop"),
-      service_phone:val("service_phone"),
+      service_contact_id:serviceMaster?.id||null,
+      service_workshop:serviceMaster?.name||"",
+      service_phone:serviceMaster?.phone||"",
+      tuv_due_at:tuvDue?new Date(tuvDue).toISOString():null,
+      tuv_contact_id:tuvMaster?.id||null,
+      tuv_contact:tuvMaster?.name||"",
+      tuv_phone:tuvMaster?.phone||"",
+      tuv_address:tuvMaster?.address||"",
       active:true
     };
     if(!id){body.operational_status="bereit";body.status_reason="";}
@@ -816,6 +906,54 @@ window.vehicleForm=id=>{
   }catch(e){toast(e.message)}};
   $("#formDialog").showModal();
 };
+window.masterContactForm=(kind,id)=>{
+  const m=state.masterContacts.find(x=>x.id===id)||{kind};
+  const labels={uvv:"UVV-Prüfstelle",werkstatt:"Werkstatt",tuev:"TÜV-Prüfstelle"};
+  $("#formSave").style.display="";
+  $("#formTitle").textContent=id?`${labels[kind]||"Stammdatum"} bearbeiten`:`${labels[kind]||"Stammdatum"} anlegen`;
+  $("#formFields").innerHTML=`
+    <label class="full">Name<input id="f_master_name" value="${esc(m.name||"")}" placeholder="${esc(labels[kind]||"Name")}"></label>
+    <label class="full">Adresse<input id="f_master_address" value="${esc(m.address||"")}" placeholder="Straße, Hausnummer, PLZ, Ort"></label>
+    <label>Ansprechpartner<input id="f_master_person" value="${esc(m.contact_person||"")}"></label>
+    <label>Telefon<input id="f_master_phone" type="tel" value="${esc(m.phone||"")}"></label>
+    <label class="full">E-Mail<input id="f_master_email" type="email" value="${esc(m.email||"")}"></label>
+    <label class="full">Notiz<input id="f_master_notes" value="${esc(m.notes||"")}"></label>
+  `;
+  $("#formSave").onclick=async()=>{try{
+    const body={
+      kind,
+      name:$("#f_master_name").value.trim(),
+      address:$("#f_master_address").value.trim(),
+      contact_person:$("#f_master_person").value.trim(),
+      phone:$("#f_master_phone").value.trim(),
+      email:$("#f_master_email").value.trim(),
+      notes:$("#f_master_notes").value.trim(),
+      active:true,
+      updated_at:new Date().toISOString()
+    };
+    if(!body.name) return toast("Name fehlt");
+    if(id) await api(`elko_master_contacts?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
+    else await api("elko_master_contacts",{method:"POST",body:JSON.stringify(body)});
+    $("#formDialog").close();
+    await loadAll();
+    state.tab="master";
+    renderManage();
+    toast("Stammdaten gespeichert.");
+  }catch(e){toast(e.message)}};
+  $("#formDialog").showModal();
+};
+
+window.softDeleteMasterContact=async id=>{
+  if(!confirm("Stammdatensatz aus der Auswahl entfernen? Bereits zugeordnete Fahrzeuge behalten ihre gespeicherten Kontaktdaten.")) return;
+  try{
+    await api(`elko_master_contacts?id=eq.${id}`,{method:"PATCH",body:JSON.stringify({active:false,updated_at:new Date().toISOString()})});
+    await loadAll();
+    state.tab="master";
+    renderManage();
+    toast("Stammdatensatz entfernt.");
+  }catch(e){toast(e.message)}
+};
+
 window.openVehicleCard=id=>{
   const v=state.vehicles.find(x=>x.id===id);
   if(!v) return;
