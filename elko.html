@@ -35,7 +35,7 @@
     .vehicle.active{border-color:#2cb766;box-shadow:0 0 0 1px #2cb76622 inset}
     .vehicle .top{display:flex;justify-content:space-between;gap:8px}.vehicle strong{font-size:17px}
     .status{font-size:11px;padding:5px 8px;border-radius:999px;font-weight:900}
-    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}\n    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}\n    .status.deleted{background:#30272a;color:#b8aeb1}
+    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}\n    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}\n    .status.deleted{background:#30272a;color:#b8aeb1}\n    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}\n    .status.deleted{background:#30272a;color:#b8aeb1}
     .vehicle .driver{font-size:20px;font-weight:900;margin:14px 0 5px}.vehicle .meta{color:var(--muted);font-size:13px}
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
     table{width:100%;border-collapse:collapse;min-width:1050px}
@@ -292,7 +292,8 @@ window.vehicleForm=id=>{
     {id:"name",label:"Fahrzeug",value:v.name},{id:"plate",label:"Kennzeichen",value:v.plate},
     {id:"km",label:"Kilometerstand",type:"number",value:v.current_mileage??""}
   ],async()=>{try{
-    const body={name:val("name"),plate:val("plate"),current_mileage:Number(val("km")||0),active:true};\n    if(!id){body.operational_status="bereit";body.status_reason="";}
+    const body={name:val("name"),plate:val("plate"),current_mileage:Number(val("km")||0),active:true};
+    if(!id){body.operational_status="bereit";body.status_reason="";}\n    if(!id){body.operational_status="bereit";body.status_reason="";}
     if(!body.name||!body.plate) return toast("Fahrzeug und Kennzeichen fehlen");
     if(id) await api(`elko_vehicles?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
     else await api("elko_vehicles",{method:"POST",body:JSON.stringify(body)});
