@@ -63,8 +63,17 @@
     textarea{width:100%;min-height:120px;resize:vertical;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:11px 13px;font:inherit}
     .compact-textarea{min-height:72px}
     .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px}
-    .image-grid a{display:block;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#111}
-    .image-grid img{display:block;width:100%;height:110px;object-fit:cover}
+    .image-thumb{display:block;width:100%;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#111;cursor:pointer}
+    .image-thumb img{display:block;width:100%;height:110px;object-fit:cover}
+    .accident-pdf-actions{display:flex;gap:8px;flex-wrap:wrap;margin-right:auto}
+    #imageViewerDialog{width:min(1100px,96vw);height:min(820px,92vh);background:#090d0f;border:1px solid var(--line)}
+    .viewer-shell{height:100%;display:flex;flex-direction:column;padding:14px}
+    .viewer-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .viewer-stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:0;margin-top:10px}
+    #viewerImage{max-width:calc(100% - 130px);max-height:100%;object-fit:contain;border-radius:10px}
+    .viewer-nav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;font-size:28px;padding:0;background:#182228dd}
+    .viewer-prev{left:12px}.viewer-next{right:12px}
+    .viewer-counter{text-align:center;color:var(--muted);font-weight:800;padding-top:8px}
     .accident-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
     .accident-sub{color:var(--muted);font-size:13px;margin-top:4px}
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
@@ -242,9 +251,28 @@
     </div>
 
     <div class="dialog-actions">
+      <div class="accident-pdf-actions">
+        <button type="button" id="acc_pdf_btn" class="blue">PDF speichern</button>
+        <button type="button" id="acc_print_btn">Drucken</button>
+      </div>
       <button onclick="accidentDialog.close()">Schließen</button>
       <button type="button" class="primary" id="acc_save_btn">Unfallvorgang speichern</button>
     </div>
+  </div>
+</dialog>
+
+<dialog id="imageViewerDialog">
+  <div class="viewer-shell">
+    <div class="viewer-head">
+      <strong id="viewerTitle">Unfallbild</strong>
+      <button type="button" id="viewerCloseBtn">✕ Schließen</button>
+    </div>
+    <div class="viewer-stage">
+      <button type="button" class="viewer-nav viewer-prev" id="viewerPrevBtn" aria-label="Vorheriges Bild">‹</button>
+      <img id="viewerImage" alt="Unfallbild groß">
+      <button type="button" class="viewer-nav viewer-next" id="viewerNextBtn" aria-label="Nächstes Bild">›</button>
+    </div>
+    <div id="viewerCounter" class="viewer-counter"></div>
   </div>
 </dialog>
 
@@ -728,13 +756,43 @@ window.routeForm=id=>{
 let activeAccidentVehicleId=null;
 let activeAccidentId=null;
 
+let accidentViewerImages=[];
+let accidentViewerIndex=0;
+
 function renderAccidentImages(images){
   const box=$("#acc_images");
-  const list=Array.isArray(images)?images:[];
-  box.innerHTML=list.length
-    ? list.map(url=>`<a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="Unfallbild"></a>`).join("")
+  accidentViewerImages=Array.isArray(images)?images:[];
+  box.innerHTML=accidentViewerImages.length
+    ? accidentViewerImages.map((url,index)=>`<button type="button" class="image-thumb" onclick="openAccidentImage(${index})"><img src="${esc(url)}" alt="Unfallbild ${index+1}"></button>`).join("")
     : '<div class="small">Noch keine Bilder hinterlegt.</div>';
 }
+
+function updateAccidentViewer(){
+  if(!accidentViewerImages.length) return;
+  const total=accidentViewerImages.length;
+  accidentViewerIndex=(accidentViewerIndex+total)%total;
+  $("#viewerImage").src=accidentViewerImages[accidentViewerIndex];
+  $("#viewerTitle").textContent=`Unfallbild ${accidentViewerIndex+1}`;
+  $("#viewerCounter").textContent=`${accidentViewerIndex+1} / ${total}`;
+  $("#viewerPrevBtn").style.visibility=total>1?"visible":"hidden";
+  $("#viewerNextBtn").style.visibility=total>1?"visible":"hidden";
+}
+
+window.openAccidentImage=index=>{
+  if(!accidentViewerImages.length) return;
+  accidentViewerIndex=index;
+  updateAccidentViewer();
+  $("#imageViewerDialog").showModal();
+};
+
+$("#viewerPrevBtn").onclick=()=>{accidentViewerIndex--;updateAccidentViewer();};
+$("#viewerNextBtn").onclick=()=>{accidentViewerIndex++;updateAccidentViewer();};
+$("#viewerCloseBtn").onclick=()=>$("#imageViewerDialog").close();
+document.addEventListener("keydown",e=>{
+  if(!$("#imageViewerDialog").open) return;
+  if(e.key==="ArrowLeft"){accidentViewerIndex--;updateAccidentViewer();}
+  if(e.key==="ArrowRight"){accidentViewerIndex++;updateAccidentViewer();}
+});
 
 window.openAccident=async vehicleId=>{
   const v=mapVehicle(vehicleId);
@@ -844,6 +902,142 @@ async function uploadAccidentImages(){
     toast("Bilder gespeichert.");
   }catch(e){toast(e.message)}
 }
+
+function accidentFormData(){
+  const v=mapVehicle(activeAccidentVehicleId)||{};
+  const current=getAccidentForVehicle(activeAccidentVehicleId)||{};
+  return {
+    vehicle_name:v.name||"",
+    vehicle_plate:v.plate||"",
+    case_number:$("#acc_case").value.trim(),
+    status:$("#acc_status").value,
+    accident_at:$("#acc_at").value,
+    location:$("#acc_location").value.trim(),
+    opponent_name:$("#acc_opponent").value.trim(),
+    opponent_plate:$("#acc_opponent_plate").value.trim(),
+    opponent_contact:$("#acc_opponent_contact").value.trim(),
+    opponent_insurance:$("#acc_insurance").value.trim(),
+    police_reference:$("#acc_police").value.trim(),
+    report:$("#acc_report").value.trim(),
+    images:Array.isArray(current.images)?current.images:accidentViewerImages
+  };
+}
+
+function dataUrlFromBlob(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function fetchImageDataUrl(url){
+  const res=await fetch(url);
+  if(!res.ok) throw new Error("Bild konnte nicht geladen werden.");
+  return await dataUrlFromBlob(await res.blob());
+}
+
+function imageSizeFromDataUrl(dataUrl){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>resolve({width:img.naturalWidth||img.width,height:img.naturalHeight||img.height});
+    img.onerror=reject;
+    img.src=dataUrl;
+  });
+}
+
+async function buildAccidentPdf(){
+  const data=accidentFormData();
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const statusLabel=data.status==="abgeschlossen"?"Abgeschlossen":data.status==="in_bearbeitung"?"In Bearbeitung":"Offen";
+
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(17);
+  doc.text("ELKO-TOURS · Unfallvorgang",14,16);
+
+  doc.setFontSize(13);
+  doc.text(pdfText(data.vehicle_name||"Fahrzeug"),14,25);
+  doc.setFontSize(16);
+  doc.text(pdfText(data.vehicle_plate||""),14,33);
+
+  doc.autoTable({
+    startY:40,
+    margin:{left:14,right:14},
+    theme:"grid",
+    body:[
+      ["Vorgangsnummer",pdfText(data.case_number||"-")],
+      ["Status",statusLabel],
+      ["Unfalldatum / Uhrzeit",data.accident_at ? new Date(data.accident_at).toLocaleString("de-DE") : "-"],
+      ["Unfallgegner",pdfText(data.opponent_name||"-")],
+      ["Kennzeichen Unfallgegner",pdfText(data.opponent_plate||"-")],
+      ["Kontakt Unfallgegner",pdfText(data.opponent_contact||"-")],
+      ["Versicherung Unfallgegner",pdfText(data.opponent_insurance||"-")],
+      ["Unfallort",pdfText(data.location||"-")],
+      ["Polizei / Aktenzeichen",pdfText(data.police_reference||"-")],
+      ["Unfallbericht / Hergang",pdfText(data.report||"-")]
+    ],
+    styles:{font:"helvetica",fontSize:9,cellPadding:3,overflow:"linebreak",valign:"top"},
+    columnStyles:{0:{cellWidth:48,fontStyle:"bold"},1:{cellWidth:130}},
+    didDrawPage:()=>{
+      const p=doc.internal.getCurrentPageInfo().pageNumber;
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(7);
+      doc.text(`ELKO-TOURS · Unfallvorgang · Seite ${p}`,14,289);
+    }
+  });
+
+  const images=Array.isArray(data.images)?data.images:[];
+  for(let i=0;i<images.length;i++){
+    try{
+      const dataUrl=await fetchImageDataUrl(images[i]);
+      const size=await imageSizeFromDataUrl(dataUrl);
+      doc.addPage("a4","portrait");
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(14);
+      doc.text(`Unfallbild ${i+1} von ${images.length}`,14,16);
+
+      const maxW=182, maxH=252;
+      const scale=Math.min(maxW/size.width,maxH/size.height);
+      const w=size.width*scale, h=size.height*scale;
+      const x=(210-w)/2;
+      const y=24+(252-h)/2;
+      const fmt=/image\/png/i.test(dataUrl.slice(0,40))?"PNG":"JPEG";
+      doc.addImage(dataUrl,fmt,x,y,w,h,undefined,"FAST");
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(7);
+      const p=doc.internal.getCurrentPageInfo().pageNumber;
+      doc.text(`ELKO-TOURS · ${pdfText(data.case_number||"Unfallvorgang")} · Seite ${p}`,14,289);
+    }catch(e){
+      console.warn("Unfallbild konnte nicht ins PDF übernommen werden",e);
+    }
+  }
+  return doc;
+}
+
+async function saveAccidentPdf(){
+  try{
+    const doc=await buildAccidentPdf();
+    const data=accidentFormData();
+    const safe=(data.case_number||data.vehicle_plate||"Unfallvorgang").replace(/[^A-Za-z0-9._-]+/g,"_");
+    doc.save(`ELKO_Unfall_${safe}.pdf`);
+  }catch(e){toast("PDF: "+e.message)}
+}
+
+async function printAccidentPdf(){
+  try{
+    const doc=await buildAccidentPdf();
+    doc.autoPrint();
+    const url=doc.output("bloburl");
+    const w=window.open(url,"_blank");
+    if(!w) toast("Druckansicht wurde vom Browser blockiert.");
+  }catch(e){toast("Drucken: "+e.message)}
+}
+
+$("#acc_pdf_btn").onclick=saveAccidentPdf;
+$("#acc_print_btn").onclick=printAccidentPdf;
 
 $("#acc_save_btn").onclick=async()=>{
   try{
