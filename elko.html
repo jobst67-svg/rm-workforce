@@ -31,6 +31,13 @@
     .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:26px 0 10px}
     .section-title h2{font-size:19px;margin:0}.small{font-size:12px;color:var(--muted)}
     .vehicles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+    .vehicle-group-title{grid-column:1/-1;margin-top:10px;padding:8px 2px 2px;font-size:15px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+    .vehicle-group-title:first-child{margin-top:0}
+    .vehicle-category{font-size:11px;color:var(--muted);font-weight:800;margin-top:7px}
+    .search-card{margin:0 0 14px}
+    .search-card .search-wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .search-card input{flex:1;min-width:280px}
+    .search-count{color:var(--muted);font-size:12px;font-weight:800}
     .vehicle{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
     .vehicle.active{border-color:#2cb766;box-shadow:0 0 0 1px #2cb76622 inset}
     .vehicle .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
@@ -123,8 +130,15 @@
 
   <div class="section-title">
     <h2>Fahrzeugstatus</h2>
-    <div class="small">Aktueller Fahrer wird zentral aus Supabase angezeigt</div>
+    <div class="small">Sortiert nach Reisebus / Kleinbus und Kennzeichen</div>
   </div>
+  <section class="card search-card">
+    <div class="search-wrap">
+      <input id="globalSearch" type="search" placeholder="Suchen: Fahrzeug, Kennzeichen, Fahrer, Status, Grund, Linie, Sonderziel …">
+      <button id="clearSearch">Suche löschen</button>
+      <span id="searchCount" class="search-count"></span>
+    </div>
+  </section>
   <section id="vehicles" class="vehicles"></section>
 
   <div class="section-title">
@@ -338,6 +352,43 @@ function driverStatusMeta(d){
   if(st==="urlaub") return {label:"URLAUB", cls:"vacation"};
   return {label:"BEREIT", cls:"ready"};
 }
+function vehicleCategoryLabel(v){
+  return (v.vehicle_category||"reisebus")==="kleinbus" ? "Kleinbus" : "Reisebus";
+}
+
+function normalizeSearch(v){
+  return String(v??"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function searchTokens(){
+  return normalizeSearch($("#globalSearch")?.value||"").split(/\s+/).filter(Boolean);
+}
+
+function matchesTokens(values,tokens){
+  if(!tokens.length) return true;
+  const haystack=normalizeSearch(values.filter(v=>v!==null&&v!==undefined).join(" "));
+  return tokens.every(t=>haystack.includes(t));
+}
+
+function vehicleMatchesSearch(v,tokens){
+  const driver=v.current_driver_id?mapDriver(v.current_driver_id):"kein fahrer";
+  const meta=vehicleStatusMeta(v);
+  return matchesTokens([
+    v.name,v.plate,vehicleCategoryLabel(v),driver,meta.label,meta.detail,
+    v.status_reason,v.current_mileage
+  ],tokens);
+}
+
+function tripMatchesSearch(t,tokens){
+  if(!tokens.length) return true;
+  const v=mapVehicle(t.vehicle_id)||{};
+  return matchesTokens([
+    dateDE(t.started_at),mapDriver(t.driver_id),v.name,v.plate,vehicleCategoryLabel(v),
+    t.route_label,t.special_destinations,t.start_point,t.destination,t.end_point,
+    t.trip_type,t.purpose,t.start_mileage,t.end_mileage,t.line_km,t.special_km,t.total_km
+  ],tokens);
+}
+
 function updateVehicleFilterStyle(){
   const vf=$("#vehicleFilter");
   const v=state.vehicles.find(x=>x.id===vf.value);
@@ -371,19 +422,26 @@ async function loadAll(){
 function monthKey(d){ const x=new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}`; }
 function filteredTrips(){
   const month=$("#monthFilter").value, veh=$("#vehicleFilter").value, drv=$("#driverFilter").value;
+  const tokens=searchTokens();
   return state.trips.filter(t =>
     (!month || monthKey(t.started_at)===month) &&
     (!veh || t.vehicle_id===veh) &&
     (!drv || t.driver_id===drv) &&
-    t.ended_at
+    t.ended_at &&
+    tripMatchesSearch(t,tokens)
   );
 }
 function fillFilters(){
   const vf=$("#vehicleFilter"), df=$("#driverFilter"), oldV=vf.value, oldD=df.value;
-  vf.innerHTML='<option value="">Alle Fahrzeuge</option>'+state.vehicles.filter(v=>v.active!==false).map(v=>{
+  const sortedVehicles=state.vehicles.filter(v=>v.active!==false).slice().sort((a,b)=>{
+    const ca=(a.vehicle_category||"reisebus")==="kleinbus"?1:0;
+    const cb=(b.vehicle_category||"reisebus")==="kleinbus"?1:0;
+    return ca-cb || String(a.plate||"").localeCompare(String(b.plate||""),"de",{numeric:true,sensitivity:"base"});
+  });
+  vf.innerHTML='<option value="">Alle Fahrzeuge</option>'+sortedVehicles.map(v=>{
     const m=vehicleStatusMeta(v);
     const suffix=m.cls==="hu"?"HU":m.detail.toUpperCase();
-    return `<option class="${m.optionCls}" value="${v.id}">${esc(v.name)} · ${esc(v.plate)} · ${suffix}</option>`;
+    return `<option class="${m.optionCls}" value="${v.id}">${vehicleCategoryLabel(v)} · ${esc(v.plate)} · ${esc(v.name)} · ${suffix}</option>`;
   }).join("");
   df.innerHTML='<option value="">Alle Fahrer</option>'+state.drivers.filter(d=>d.active!==false).map(d=>{
     const m=driverStatusMeta(d);
@@ -394,12 +452,26 @@ function fillFilters(){
 function render(){
   const trips=filteredTrips();
   const activeVehicles=state.vehicles.filter(v=>v.active!==false);
+  const tokens=searchTokens();
+  const visibleVehicles=activeVehicles
+    .filter(v=>vehicleMatchesSearch(v,tokens))
+    .sort((a,b)=>{
+      const ca=(a.vehicle_category||"reisebus")==="kleinbus"?1:0;
+      const cb=(b.vehicle_category||"reisebus")==="kleinbus"?1:0;
+      return ca-cb || String(a.plate||"").localeCompare(String(b.plate||""),"de",{numeric:true,sensitivity:"base"});
+    });
+
   $("#vehicleCount").textContent=activeVehicles.length;
   $("#activeVehicleCount").textContent=activeVehicles.filter(v=>v.current_driver_id&&(v.operational_status||"bereit")==="bereit").length;
   $("#tripCount").textContent=trips.length;
   $("#kmTotal").textContent=trips.reduce((a,t)=>a+(Number(t.total_km)||0),0).toLocaleString("de-DE");
+  $("#searchCount").textContent=tokens.length ? `${visibleVehicles.length} Fahrzeuge · ${trips.length} Fahrten gefunden` : "";
 
-  $("#vehicles").innerHTML=activeVehicles.map(v=>{
+  let lastCategory="";
+  $("#vehicles").innerHTML=visibleVehicles.map(v=>{
+    const category=vehicleCategoryLabel(v);
+    const groupTitle=category!==lastCategory ? `<div class="vehicle-group-title">${category}</div>` : "";
+    lastCategory=category;
     const driver=v.current_driver_id?mapDriver(v.current_driver_id):"Kein Fahrer";
     const occupied=!!v.current_driver_id;
     const open=state.trips.find(t=>t.vehicle_id===v.id&&!t.ended_at);
@@ -409,7 +481,7 @@ function render(){
     const isAccident=!!accident || /unfall/i.test(v.status_reason||"");
     const statusLabel=meta.cls==="ready"?(occupied?"BESETZT":"FREI"):meta.label;
     const statusClass=meta.cls==="ready"?(occupied?"on":"off"):meta.cls;
-    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" onclick="openVehicleCard('${v.id}')">
+    return groupTitle+`<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" onclick="openVehicleCard('${v.id}')">
       <div class="top">
         <div class="vehicle-id">
           <div class="vehicle-name">${esc(v.name)}</div>
@@ -417,12 +489,13 @@ function render(){
         </div>
         <span class="status ${statusClass}">${statusLabel}</span>
       </div>
+      <div class="vehicle-category">${category}</div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
       ${open?`<div class="meta" style="margin-top:7px;color:#76eaa0">Tour läuft · ${esc(open.route_label||"")}</div>`:""}
       ${isAccident?`<div class="accident-hint" onclick="event.stopPropagation();openAccident('${v.id}')">Unfalldaten öffnen →</div>`:""}
     </article>`;
-  }).join("") || '<div class="empty">Keine Fahrzeuge angelegt.</div>';
+  }).join("") || '<div class="empty" style="grid-column:1/-1">Keine passenden Fahrzeuge gefunden.</div>';
 
   const rows=$("#tripRows"); rows.innerHTML=trips.map(t=>{
     const v=mapVehicle(t.vehicle_id);
@@ -452,13 +525,18 @@ function renderManage(){
       }).join("")}</div>`;
   }else if(state.tab==="vehicles"){
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="vehicleForm()">+ Fahrzeug</button></div>
-      <div class="list">${state.vehicles.map(v=>{
+      <div class="list">${state.vehicles.slice().sort((a,b)=>{
+        const aa=a.active===false?1:0, ab=b.active===false?1:0;
+        const ca=(a.vehicle_category||"reisebus")==="kleinbus"?1:0;
+        const cb=(b.vehicle_category||"reisebus")==="kleinbus"?1:0;
+        return aa-ab || ca-cb || String(a.plate||"").localeCompare(String(b.plate||""),"de",{numeric:true,sensitivity:"base"});
+      }).map(v=>{
         const op=v.operational_status||"bereit";
         const vm=vehicleStatusMeta(v);
         const status=v.active===false?"GELÖSCHT":vm.label;
         const reason=(op!=="bereit"&&v.status_reason)?` · ${esc(v.status_reason)}`:"";
         const badgeClass=v.active===false?"deleted":vm.cls==="hu"?"hu":vm.cls==="workshop"?"workshop":vm.cls==="outage"?"outage":"ready";
-        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}</div></div>
+        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${vehicleCategoryLabel(v)} · ${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}</div></div>
         <div class="actions">${v.active!==false
           ? `<button class="blue" onclick="assignVehicleForm('${v.id}')">Fahrzeug zuweisen</button><button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`
           : `<button class="blue" onclick="openVehicleArchivePdf('${v.id}')">${v.archive_pdf_url?"Archiv-PDF öffnen":"Archiv-PDF erstellen"}</button>`
@@ -530,17 +608,34 @@ window.softDeleteDriver=async id=>{
 };
 window.vehicleForm=id=>{
   const v=state.vehicles.find(x=>x.id===id)||{};
-  openForm(id?"Fahrzeug bearbeiten":"Fahrzeug anlegen",[
-    {id:"name",label:"Fahrzeug",value:v.name},{id:"plate",label:"Kennzeichen",value:v.plate},
-    {id:"km",label:"Kilometerstand",type:"number",value:v.current_mileage??""}
-  ],async()=>{try{
-    const body={name:val("name"),plate:val("plate"),current_mileage:Number(val("km")||0),active:true};
+  $("#formSave").style.display="";
+  $("#formTitle").textContent=id?"Fahrzeug bearbeiten":"Fahrzeug anlegen";
+  $("#formFields").innerHTML=`
+    <label>Fahrzeug<input id="f_name" value="${esc(v.name||"")}"></label>
+    <label>Kennzeichen<input id="f_plate" value="${esc(v.plate||"")}"></label>
+    <label>Fahrzeugart
+      <select id="f_category">
+        <option value="reisebus" ${(v.vehicle_category||"reisebus")==="reisebus"?"selected":""}>Reisebus</option>
+        <option value="kleinbus" ${v.vehicle_category==="kleinbus"?"selected":""}>Kleinbus</option>
+      </select>
+    </label>
+    <label>Kilometerstand<input id="f_km" type="number" value="${esc(v.current_mileage??"")}"></label>
+  `;
+  $("#formSave").onclick=async()=>{try{
+    const body={
+      name:val("name"),
+      plate:val("plate"),
+      vehicle_category:$("#f_category").value,
+      current_mileage:Number(val("km")||0),
+      active:true
+    };
     if(!id){body.operational_status="bereit";body.status_reason="";}
     if(!body.name||!body.plate) return toast("Fahrzeug und Kennzeichen fehlen");
     if(id) await api(`elko_vehicles?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
     else await api("elko_vehicles",{method:"POST",body:JSON.stringify(body)});
     $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
-  }catch(e){toast(e.message)}});
+  }catch(e){toast(e.message)}};
+  $("#formDialog").showModal();
 };
 window.openVehicleCard=id=>{
   const v=state.vehicles.find(x=>x.id===id);
@@ -1279,6 +1374,8 @@ $("#xlsxBtn").onclick=exportXlsx;
 $("#pdfPreviewBtn").onclick=previewPdf;
 $("#pdfAllBtn").onclick=downloadAllPdf;
 $("#refreshBtn").onclick=loadAll; $("#manageBtn").onclick=()=>{$("#manageDialog").showModal();renderManage()};
+$("#globalSearch").oninput=render;
+$("#clearSearch").onclick=()=>{$("#globalSearch").value="";render();$("#globalSearch").focus();};
 $("#monthFilter").onchange=()=>{updatePdfAllButtonLabel();render();}; $("#vehicleFilter").onchange=()=>{updateVehicleFilterStyle();render();}; $("#driverFilter").onchange=render;
 $("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;updateVehicleFilterStyle();updatePdfAllButtonLabel();render()};
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;renderManage()});
