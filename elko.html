@@ -362,7 +362,7 @@ function render(){
     const isAccident=!!accident || /unfall/i.test(v.status_reason||"");
     const statusLabel=meta.cls==="ready"?(occupied?"BESETZT":"FREI"):meta.label;
     const statusClass=meta.cls==="ready"?(occupied?"on":"off"):meta.cls;
-    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" ${isAccident?`onclick="openAccident('${v.id}')"`:""}>`
+    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" ${isAccident?`onclick="openAccident('${v.id}')"`:""}>
       <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${statusClass}">${statusLabel}</span></div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
