@@ -306,13 +306,18 @@ function updateVehicleFilterStyle(){
 
 async function loadAll(){
   try{
-    [state.drivers,state.vehicles,state.routes,state.trips,state.accidents] = await Promise.all([
+    [state.drivers,state.vehicles,state.routes,state.trips] = await Promise.all([
       api("elko_drivers?select=*&order=name.asc"),
       api("elko_vehicles?select=*&order=name.asc"),
       api("elko_routes?select=*&order=name.asc"),
-      api("elko_trips?select=*&order=started_at.desc&limit=3000"),
-      api("elko_accidents?select=*&order=accident_at.desc.nullslast,created_at.desc")
+      api("elko_trips?select=*&order=started_at.desc&limit=3000")
     ]);
+    try{
+      state.accidents = await api("elko_accidents?select=*");
+    }catch(e){
+      state.accidents = [];
+      console.warn("Unfalldaten konnten nicht vorgeladen werden", e);
+    }
     fillFilters(); render(); renderManage();
   }catch(e){toast("Fehler: "+e.message)}
 }
@@ -581,28 +586,42 @@ function renderAccidentImages(images){
     : '<div class="small">Noch keine Bilder hinterlegt.</div>';
 }
 
-window.openAccident=vehicleId=>{
+window.openAccident=async vehicleId=>{
   const v=mapVehicle(vehicleId);
   if(!v) return;
-  const a=getAccidentForVehicle(vehicleId) || {};
-  activeAccidentVehicleId=vehicleId;
-  activeAccidentId=a.id||null;
 
-  $("#accidentTitle").textContent=a.id?"Unfallvorgang":"Unfallvorgang anlegen";
+  activeAccidentVehicleId=vehicleId;
   $("#accidentVehicle").textContent=`${v.name} · ${v.plate}`;
-  $("#acc_case").value=a.case_number||"";
-  $("#acc_status").value=a.status||"offen";
-  $("#acc_at").value=toLocalDateTimeInput(a.accident_at);
-  $("#acc_location").value=a.location||"";
-  $("#acc_opponent").value=a.opponent_name||"";
-  $("#acc_opponent_plate").value=a.opponent_plate||"";
-  $("#acc_opponent_contact").value=a.opponent_contact||"";
-  $("#acc_insurance").value=a.opponent_insurance||"";
-  $("#acc_police").value=a.police_reference||"";
-  $("#acc_report").value=a.report||"";
-  $("#acc_images_input").value="";
-  renderAccidentImages(a.images||[]);
+  $("#accidentTitle").textContent="Unfallvorgang wird geladen …";
   $("#accidentDialog").showModal();
+
+  try{
+    const rows=await api(`elko_accidents?select=*&vehicle_id=eq.${vehicleId}&order=created_at.desc&limit=1`);
+    const a=rows?.[0] || getAccidentForVehicle(vehicleId) || {};
+    activeAccidentId=a.id||null;
+
+    $("#accidentTitle").textContent=a.id?"Unfallvorgang":"Unfallvorgang anlegen";
+    $("#acc_case").value=a.case_number||"";
+    $("#acc_status").value=a.status||"offen";
+    $("#acc_at").value=toLocalDateTimeInput(a.accident_at);
+    $("#acc_location").value=a.location||"";
+    $("#acc_opponent").value=a.opponent_name||"";
+    $("#acc_opponent_plate").value=a.opponent_plate||"";
+    $("#acc_opponent_contact").value=a.opponent_contact||"";
+    $("#acc_insurance").value=a.opponent_insurance||"";
+    $("#acc_police").value=a.police_reference||"";
+    $("#acc_report").value=a.report||"";
+    $("#acc_images_input").value="";
+    renderAccidentImages(a.images||[]);
+
+    if(a.id){
+      const idx=state.accidents.findIndex(x=>x.id===a.id);
+      if(idx>=0) state.accidents[idx]=a; else state.accidents.unshift(a);
+    }
+  }catch(e){
+    $("#accidentTitle").textContent="Unfalldaten konnten nicht geladen werden";
+    toast("Unfalldaten: "+e.message);
+  }
 };
 
 async function saveAccidentRecord(){
