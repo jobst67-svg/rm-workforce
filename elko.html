@@ -38,6 +38,10 @@
     .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}
     .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}
     .status.hu{background:#5a4310;color:#ffe18a;border:1px solid #dca93a}.status.deleted{background:#30272a;color:#b8aeb1}
+    .status.ready{background:#173622;color:#80e8a1}
+    .status.sick{background:#4a1f1f;color:#ff9a94}
+    .status.vacation{background:#153750;color:#93d3ff}
+    .manage-status{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;vertical-align:middle}
     .vehicle.hu{border-color:#dca93a;box-shadow:0 0 0 1px #dca93a55 inset;background:linear-gradient(180deg,#2b2719,#172126)}
     option.status-ready{background:#182c20;color:#8af0aa}
     option.status-hu{background:#5a4310;color:#ffe18a}
@@ -192,6 +196,12 @@ function vehicleStatusMeta(v){
   if(op==="ausfall") return {label:"AUSFALL", detail:"Ausfall", cls:"outage", optionCls:"status-outage"};
   return {label:"BEREIT", detail:"Bereit", cls:"ready", optionCls:"status-ready"};
 }
+function driverStatusMeta(d){
+  const st=d.availability_status||"bereit";
+  if(st==="krank") return {label:"KRANK", cls:"sick"};
+  if(st==="urlaub") return {label:"URLAUB", cls:"vacation"};
+  return {label:"BEREIT", cls:"ready"};
+}
 function updateVehicleFilterStyle(){
   const vf=$("#vehicleFilter");
   const v=state.vehicles.find(x=>x.id===vf.value);
@@ -233,7 +243,10 @@ function fillFilters(){
     const suffix=m.cls==="hu"?"HU":m.detail.toUpperCase();
     return `<option class="${m.optionCls}" value="${v.id}">${esc(v.name)} · ${esc(v.plate)} · ${suffix}</option>`;
   }).join("");
-  df.innerHTML='<option value="">Alle Fahrer</option>'+state.drivers.filter(d=>d.active!==false).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join("");
+  df.innerHTML='<option value="">Alle Fahrer</option>'+state.drivers.filter(d=>d.active!==false).map(d=>{
+    const m=driverStatusMeta(d);
+    return `<option value="${d.id}">${esc(d.name)} · ${m.label}</option>`;
+  }).join("");
   vf.value=oldV; df.value=oldD; updateVehicleFilterStyle();
 }
 function render(){
@@ -280,8 +293,12 @@ function renderManage(){
   document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.tab));
   if(state.tab==="drivers"){
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="driverForm()">+ Fahrer</button></div>
-      <div class="list">${state.drivers.map(d=>`<div class="rowcard"><div><strong>${esc(d.name)}</strong><div class="small">${esc(d.short_code||"")} ${d.active===false?"· gelöscht":""}</div></div>
-      <div class="actions"><button onclick="driverForm('${d.id}')">Bearbeiten</button>${d.active!==false?`<button class="danger" onclick="softDeleteDriver('${d.id}')">Löschen</button>`:""}</div></div>`).join("")}</div>`;
+      <div class="list">${state.drivers.map(d=>{
+        const dm=driverStatusMeta(d);
+        const reason=d.status_reason?` · ${esc(d.status_reason)}`:"";
+        return `<div class="rowcard"><div><strong>${esc(d.name)}</strong><span class="manage-status status ${dm.cls}">${d.active===false?"GELÖSCHT":dm.label}</span><div class="small">${esc(d.short_code||"")}${reason}</div></div>
+        <div class="actions"><button onclick="driverForm('${d.id}')">Bearbeiten</button>${d.active!==false?`<button onclick="driverStatusForm('${d.id}')">Status</button><button class="danger" onclick="softDeleteDriver('${d.id}')">Löschen</button>`:""}</div></div>`;
+      }).join("")}</div>`;
   }else if(state.tab==="vehicles"){
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="vehicleForm()">+ Fahrzeug</button></div>
       <div class="list">${state.vehicles.map(v=>{
@@ -289,7 +306,8 @@ function renderManage(){
         const vm=vehicleStatusMeta(v);
         const status=v.active===false?"GELÖSCHT":vm.label;
         const reason=(op!=="bereit"&&v.status_reason)?` · ${esc(v.status_reason)}`:"";
-        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km · ${status}${reason}</div></div>
+        const badgeClass=v.active===false?"deleted":vm.cls==="hu"?"hu":vm.cls==="workshop"?"workshop":vm.cls==="outage"?"outage":"ready";
+        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}</div></div>
         <div class="actions"><button onclick="vehicleForm('${v.id}')">Bearbeiten</button>${v.active!==false?`<button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`:""}</div></div>`
       }).join("")}</div>`;
   }else{
@@ -310,12 +328,48 @@ window.driverForm=id=>{
     {id:"name",label:"Name",value:d.name},{id:"code",label:"Kürzel",value:d.short_code}
   ],async()=>{try{
     const body={name:val("name"),short_code:val("code"),active:true};
+    if(!id){body.availability_status="bereit";body.status_reason="";}
     if(!body.name) return toast("Name fehlt");
     if(id) await api(`elko_drivers?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
     else await api("elko_drivers",{method:"POST",body:JSON.stringify(body)});
     $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
   }catch(e){toast(e.message)}});
 };
+
+window.driverStatusForm=id=>{
+  const d=state.drivers.find(x=>x.id===id);
+  if(!d) return;
+  const current=d.availability_status||"bereit";
+  $("#formTitle").textContent="Fahrerstatus";
+  $("#formFields").innerHTML=`
+    <label>Status
+      <select id="f_driver_status">
+        <option value="bereit" ${current==="bereit"?"selected":""}>Bereit / im Einsatz</option>
+        <option value="krank" ${current==="krank"?"selected":""}>Krank</option>
+        <option value="urlaub" ${current==="urlaub"?"selected":""}>Urlaub</option>
+      </select>
+    </label>
+    <label class="full">Grund / Hinweis
+      <input id="f_driver_reason" value="${esc(d.status_reason||"")}" placeholder="optional, z. B. bis 25.09.">
+    </label>`;
+  $("#formSave").onclick=async()=>{try{
+    const status=$("#f_driver_status").value;
+    const reason=$("#f_driver_reason").value.trim();
+    await api(`elko_drivers?id=eq.${id}`,{
+      method:"PATCH",
+      body:JSON.stringify({
+        availability_status:status,
+        status_reason:status==="bereit"?"":reason,
+        status_updated_at:new Date().toISOString()
+      })
+    });
+    $("#formDialog").close();
+    await loadAll();
+    toast(status==="bereit"?"Fahrer wieder bereit.":status==="krank"?"Fahrer auf krank gesetzt.":"Fahrer auf Urlaub gesetzt.");
+  }catch(e){toast(e.message)}};
+  $("#formDialog").showModal();
+};
+
 window.softDeleteDriver=async id=>{
   if(!confirm("Fahrer aus der aktiven Liste entfernen? Historische Fahrten bleiben erhalten.")) return;
   try{await api(`elko_drivers?id=eq.${id}`,{method:"PATCH",body:JSON.stringify({active:false})}); await loadAll(); toast("Fahrer entfernt.");}catch(e){toast(e.message)}
