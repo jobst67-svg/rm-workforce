@@ -43,6 +43,7 @@
     .status.vacation{background:#153750;color:#93d3ff}
     .manage-status{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900;vertical-align:middle}
     .vehicle.hu{border-color:#dca93a;box-shadow:0 0 0 1px #dca93a55 inset;background:linear-gradient(180deg,#2b2719,#172126)}
+    .vehicle.outage{border-color:#d64b45;box-shadow:0 0 0 1px #d64b4555 inset;background:linear-gradient(180deg,#321b1b,#172126)}
     option.status-ready{background:#182c20;color:#8af0aa}
     option.status-hu{background:#5a4310;color:#ffe18a}
     option.status-workshop{background:#3a2d12;color:#ffd36c}
@@ -265,7 +266,7 @@ function render(){
     const meta=vehicleStatusMeta(v);
     const statusLabel=meta.cls==="ready"?(occupied?"BESETZT":"FREI"):meta.label;
     const statusClass=meta.cls==="ready"?(occupied?"on":"off"):meta.cls;
-    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":""}">
+    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""}">
       <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${statusClass}">${statusLabel}</span></div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
