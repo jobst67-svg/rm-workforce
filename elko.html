@@ -52,9 +52,12 @@
     .vehicle.accident-clickable{cursor:pointer;position:relative}
     .vehicle.accident-clickable:hover{transform:translateY(-1px);filter:brightness(1.05)}
     .accident-hint{margin-top:10px;color:#ff9a94;font-weight:900;font-size:12px}
-    .accident-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .accident-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+    .accident-grid label{display:flex;flex-direction:column;gap:6px;min-width:0}
+    .accident-grid input,.accident-grid select,.accident-grid textarea{width:100%;max-width:100%;box-sizing:border-box}
     .accident-grid .full{grid-column:1/-1}
     textarea{width:100%;min-height:120px;resize:vertical;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:11px 13px;font:inherit}
+    .compact-textarea{min-height:72px}
     .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px}
     .image-grid a{display:block;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#111}
     .image-grid img{display:block;width:100%;height:110px;object-fit:cover}
@@ -192,8 +195,9 @@
       <label>Unfalldatum / Uhrzeit
         <input id="acc_at" type="datetime-local">
       </label>
-      <label>Unfallort
-        <input id="acc_location" placeholder="Ort / Straße">
+      <label>
+        <span>&nbsp;</span>
+        <input aria-hidden="true" tabindex="-1" style="visibility:hidden">
       </label>
 
       <label>Unfallgegner
@@ -209,8 +213,12 @@
         <input id="acc_insurance" placeholder="Versicherung">
       </label>
 
+      <label class="full">Unfallort
+        <textarea id="acc_location" class="compact-textarea" placeholder="Ort / Straße / genaue Unfallstelle"></textarea>
+      </label>
+
       <label class="full">Polizei / Aktenzeichen
-        <input id="acc_police" placeholder="Dienststelle / Aktenzeichen">
+        <textarea id="acc_police" class="compact-textarea" placeholder="Dienststelle / vollständiges Aktenzeichen"></textarea>
       </label>
 
       <label class="full">Unfallbericht / Hergang
