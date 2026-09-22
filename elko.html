@@ -414,7 +414,7 @@ function renderManage(){
         const reason=(op!=="bereit"&&v.status_reason)?` · ${esc(v.status_reason)}`:"";
         const badgeClass=v.active===false?"deleted":vm.cls==="hu"?"hu":vm.cls==="workshop"?"workshop":vm.cls==="outage"?"outage":"ready";
         return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}</div></div>
-        <div class="actions"><button onclick="vehicleForm('${v.id}')">Bearbeiten</button>${v.active!==false?`<button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`:""}</div></div>`
+        <div class="actions">${v.active!==false?`<button class="blue" onclick="assignVehicleForm('${v.id}')">Fahrzeug zuweisen</button><button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`:""}</div></div>`
       }).join("")}</div>`;
   }else{
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="routeForm()">+ Standardroute</button></div>
@@ -494,6 +494,74 @@ window.vehicleForm=id=>{
     $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
   }catch(e){toast(e.message)}});
 };
+window.assignVehicleForm=id=>{
+  const v=state.vehicles.find(x=>x.id===id);
+  if(!v) return;
+
+  if((v.operational_status||"bereit")!=="bereit"){
+    const m=vehicleStatusMeta(v);
+    toast(`Fahrzeug ist ${m.label} und kann nicht zugewiesen werden.`);
+    return;
+  }
+
+  const openTrip=state.trips.find(t=>t.vehicle_id===id&&!t.ended_at);
+  if(openTrip && openTrip.driver_id!==v.current_driver_id){
+    toast("Auf diesem Fahrzeug läuft noch eine offene Tour.");
+    return;
+  }
+
+  const availableDrivers=state.drivers.filter(d=>d.active!==false && (d.availability_status||"bereit")==="bereit");
+  if(!availableDrivers.length){
+    toast("Kein verfügbarer Fahrer vorhanden.");
+    return;
+  }
+
+  const options=[
+    '<option value="">-- Fahrzeug freigeben --</option>',
+    ...availableDrivers.map(d=>`<option value="${d.id}" ${d.id===v.current_driver_id?"selected":""}>${esc(d.name)}${d.short_code?` · ${esc(d.short_code)}`:""}</option>`)
+  ].join("");
+
+  $("#formTitle").textContent="Fahrzeug zuweisen";
+  $("#formFields").innerHTML=`
+    <div class="full small" style="margin-bottom:2px">${esc(v.name)} · ${esc(v.plate)}</div>
+    <label class="full">Fahrer
+      <select id="f_assign_driver">${options}</select>
+    </label>
+  `;
+
+  $("#formSave").onclick=async()=>{try{
+    const driverId=$("#f_assign_driver").value;
+
+    // Offene Fahrt eines anderen Fahrers nicht übersteuern.
+    const liveTrips=await api(`elko_trips?select=id,driver_id&vehicle_id=eq.${id}&ended_at=is.null&limit=1`);
+    if(liveTrips.length && driverId && liveTrips[0].driver_id!==driverId){
+      return toast("Offene Tour vorhanden. Erst Tour stoppen.");
+    }
+
+    if(driverId){
+      // Ein Fahrer kann nur einem Fahrzeug gleichzeitig zugewiesen sein.
+      await api(`elko_vehicles?current_driver_id=eq.${driverId}`,{
+        method:"PATCH",
+        body:JSON.stringify({current_driver_id:null,driver_since:null})
+      });
+    }
+
+    await api(`elko_vehicles?id=eq.${id}`,{
+      method:"PATCH",
+      body:JSON.stringify({
+        current_driver_id:driverId||null,
+        driver_since:driverId?new Date().toISOString():null
+      })
+    });
+
+    $("#formDialog").close();
+    await loadAll();
+    toast(driverId?"Fahrzeug wurde zugewiesen.":"Fahrzeug wurde freigegeben.");
+  }catch(e){toast(e.message)}};
+
+  $("#formDialog").showModal();
+};
+
 window.vehicleStatusForm=id=>{
   const v=state.vehicles.find(x=>x.id===id);
   if(!v) return;
