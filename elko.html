@@ -130,7 +130,7 @@
 
   <div class="section-title">
     <h2>Fahrzeugstatus</h2>
-    <div class="small">Sortiert nach Reisebus / Kleinbus und Kennzeichen</div>
+    <div class="small">Sortiert nach Reisebus / 9-Sitzer und Kennzeichen</div>
   </div>
   <section class="card search-card">
     <div class="search-wrap">
@@ -353,7 +353,7 @@ function driverStatusMeta(d){
   return {label:"BEREIT", cls:"ready"};
 }
 function vehicleCategoryLabel(v){
-  return (v.vehicle_category||"reisebus")==="kleinbus" ? "Kleinbus" : "Reisebus";
+  return (v.vehicle_category||"reisebus")==="kleinbus" ? "9-Sitzer" : "Reisebus";
 }
 
 function normalizeSearch(v){
@@ -616,7 +616,7 @@ window.vehicleForm=id=>{
     <label>Fahrzeugart
       <select id="f_category">
         <option value="reisebus" ${(v.vehicle_category||"reisebus")==="reisebus"?"selected":""}>Reisebus</option>
-        <option value="kleinbus" ${v.vehicle_category==="kleinbus"?"selected":""}>Kleinbus</option>
+        <option value="kleinbus" ${v.vehicle_category==="kleinbus"?"selected":""}>9-Sitzer</option>
       </select>
     </label>
     <label>Kilometerstand<input id="f_km" type="number" value="${esc(v.current_mileage??"")}"></label>
