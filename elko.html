@@ -29,6 +29,10 @@
     .card{background:rgba(23,33,38,.96);border:1px solid var(--line);border-radius:18px;padding:18px}
     .metric .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}
     .metric .value{font-size:32px;font-weight:900;margin-top:7px}.metric .sub{color:var(--muted);margin-top:5px}
+    .metric.sick-metric{border-color:#7a2f2f;background:linear-gradient(180deg,#341b1b,#172126)}
+    .metric.sick-metric .label,.metric.sick-metric .value{color:#ff8d86}
+    .metric.vacation-metric{border-color:#245a82;background:linear-gradient(180deg,#142b3d,#172126)}
+    .metric.vacation-metric .label,.metric.vacation-metric .value{color:#93d3ff}
     .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:26px 0 10px}
     .section-title h2{font-size:19px;margin:0}.small{font-size:12px;color:var(--muted)}
     .vehicles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
@@ -159,8 +163,8 @@
   </section>
 
   <section class="grid workforce-grid">
-    <div class="card metric"><div class="label">Krank</div><div id="sickCount" class="value">–</div><div class="sub">Fahrer aktuell krank</div></div>
-    <div class="card metric"><div class="label">Urlaub</div><div id="vacationCount" class="value">–</div><div class="sub">Fahrer aktuell im Urlaub</div></div>
+    <div class="card metric sick-metric"><div class="label">Krank</div><div id="sickCount" class="value">–</div><div class="sub">Fahrer aktuell krank</div></div>
+    <div class="card metric vacation-metric"><div class="label">Urlaub</div><div id="vacationCount" class="value">–</div><div class="sub">Fahrer aktuell im Urlaub</div></div>
   </section>
 
   <div class="section-title">
