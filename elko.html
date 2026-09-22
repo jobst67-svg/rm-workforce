@@ -35,7 +35,14 @@
     .vehicle.active{border-color:#2cb766;box-shadow:0 0 0 1px #2cb76622 inset}
     .vehicle .top{display:flex;justify-content:space-between;gap:8px}.vehicle strong{font-size:17px}
     .status{font-size:11px;padding:5px 8px;border-radius:999px;font-weight:900}
-    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}\n    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}\n    .status.deleted{background:#30272a;color:#b8aeb1}\n    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}\n    .status.deleted{background:#30272a;color:#b8aeb1}
+    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}
+    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}
+    .status.hu{background:#5a4310;color:#ffe18a;border:1px solid #dca93a}.status.deleted{background:#30272a;color:#b8aeb1}
+    .vehicle.hu{border-color:#dca93a;box-shadow:0 0 0 1px #dca93a55 inset;background:linear-gradient(180deg,#2b2719,#172126)}
+    option.status-ready{background:#182c20;color:#8af0aa}
+    option.status-hu{background:#5a4310;color:#ffe18a}
+    option.status-workshop{background:#3a2d12;color:#ffd36c}
+    option.status-outage{background:#401c1a;color:#ff9a94}
     .vehicle .driver{font-size:20px;font-weight:900;margin:14px 0 5px}.vehicle .meta{color:var(--muted);font-size:13px}
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
     table{width:100%;border-collapse:collapse;min-width:1050px}
@@ -176,6 +183,27 @@ const mapDriver=id => state.drivers.find(x=>x.id===id)?.name || "–";
 const mapVehicle=id => state.vehicles.find(x=>x.id===id);
 const dateDE=v => new Date(v).toLocaleDateString("de-DE");
 const timeDE=v => new Date(v).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+function vehicleStatusMeta(v){
+  const op=v.operational_status||"bereit";
+  const reason=v.status_reason||"";
+  const hu=/\bHU\b/i.test(reason);
+  if(hu) return {label:"HU", detail:"HU", cls:"hu", optionCls:"status-hu"};
+  if(op==="werkstatt") return {label:"WERKSTATT", detail:"Werkstatt", cls:"workshop", optionCls:"status-workshop"};
+  if(op==="ausfall") return {label:"AUSFALL", detail:"Ausfall", cls:"outage", optionCls:"status-outage"};
+  return {label:"BEREIT", detail:"Bereit", cls:"ready", optionCls:"status-ready"};
+}
+function updateVehicleFilterStyle(){
+  const vf=$("#vehicleFilter");
+  const v=state.vehicles.find(x=>x.id===vf.value);
+  vf.style.borderColor="";
+  vf.style.color="";
+  if(!v) return;
+  const m=vehicleStatusMeta(v);
+  if(m.cls==="hu"){vf.style.borderColor="#dca93a";vf.style.color="#ffe18a";}
+  else if(m.cls==="workshop"){vf.style.borderColor="#a77b23";vf.style.color="#ffd36c";}
+  else if(m.cls==="outage"){vf.style.borderColor="#d64b45";vf.style.color="#ff9a94";}
+  else {vf.style.borderColor="#2f7d45";vf.style.color="#8af0aa";}
+}
 
 async function loadAll(){
   try{
@@ -200,9 +228,13 @@ function filteredTrips(){
 }
 function fillFilters(){
   const vf=$("#vehicleFilter"), df=$("#driverFilter"), oldV=vf.value, oldD=df.value;
-  vf.innerHTML='<option value="">Alle Fahrzeuge</option>'+state.vehicles.filter(v=>v.active!==false).map(v=>`<option value="${v.id}">${esc(v.name)} · ${esc(v.plate)}</option>`).join("");
+  vf.innerHTML='<option value="">Alle Fahrzeuge</option>'+state.vehicles.filter(v=>v.active!==false).map(v=>{
+    const m=vehicleStatusMeta(v);
+    const suffix=m.cls==="hu"?"HU":m.detail.toUpperCase();
+    return `<option class="${m.optionCls}" value="${v.id}">${esc(v.name)} · ${esc(v.plate)} · ${suffix}</option>`;
+  }).join("");
   df.innerHTML='<option value="">Alle Fahrer</option>'+state.drivers.filter(d=>d.active!==false).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join("");
-  vf.value=oldV; df.value=oldD;
+  vf.value=oldV; df.value=oldD; updateVehicleFilterStyle();
 }
 function render(){
   const trips=filteredTrips();
@@ -217,9 +249,10 @@ function render(){
     const occupied=!!v.current_driver_id;
     const open=state.trips.find(t=>t.vehicle_id===v.id&&!t.ended_at);
     const op=v.operational_status||"bereit";
-    const statusLabel=op==="werkstatt"?"WERKSTATT":op==="ausfall"?"AUSFALL":occupied?"BESETZT":"FREI";
-    const statusClass=op==="werkstatt"?"workshop":op==="ausfall"?"outage":occupied?"on":"off";
-    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""}">
+    const meta=vehicleStatusMeta(v);
+    const statusLabel=meta.cls==="ready"?(occupied?"BESETZT":"FREI"):meta.label;
+    const statusClass=meta.cls==="ready"?(occupied?"on":"off"):meta.cls;
+    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":""}">
       <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${statusClass}">${statusLabel}</span></div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
@@ -253,7 +286,8 @@ function renderManage(){
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="vehicleForm()">+ Fahrzeug</button></div>
       <div class="list">${state.vehicles.map(v=>{
         const op=v.operational_status||"bereit";
-        const status= v.active===false ? "GELÖSCHT" : op==="werkstatt" ? "WERKSTATT" : op==="ausfall" ? "AUSFALL" : "BEREIT";
+        const vm=vehicleStatusMeta(v);
+        const status=v.active===false?"GELÖSCHT":vm.label;
         const reason=(op!=="bereit"&&v.status_reason)?` · ${esc(v.status_reason)}`:"";
         return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km · ${status}${reason}</div></div>
         <div class="actions"><button onclick="vehicleForm('${v.id}')">Bearbeiten</button>${v.active!==false?`<button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`:""}</div></div>`
@@ -361,7 +395,11 @@ window.softDeleteVehicle=async id=>{
 
 window.routeForm=id=>{
   const r=state.routes.find(x=>x.id===id)||{};
-  const vOptions=state.vehicles.filter(v=>v.active!==false).map(v=>`<option value="${v.id}" ${v.id===r.vehicle_id?"selected":""}>${esc(v.name)} · ${esc(v.plate)}</option>`).join("");
+  const vOptions=state.vehicles.filter(v=>v.active!==false).map(v=>{
+    const m=vehicleStatusMeta(v);
+    const suffix=m.cls==="hu"?"HU":m.detail.toUpperCase();
+    return `<option class="${m.optionCls}" value="${v.id}" ${v.id===r.vehicle_id?"selected":""}>${esc(v.name)} · ${esc(v.plate)} · ${suffix}</option>`;
+  }).join("");
   $("#formTitle").textContent=id?"Standardroute bearbeiten":"Standardroute anlegen";
   $("#formFields").innerHTML=`
     <label>Fahrzeug<select id="f_vehicle">${vOptions}</select></label>
@@ -401,8 +439,8 @@ function exportXlsx(){
 }
 $("#xlsxBtn").onclick=exportXlsx; $("#printBtn").onclick=()=>window.print();
 $("#refreshBtn").onclick=loadAll; $("#manageBtn").onclick=()=>{$("#manageDialog").showModal();renderManage()};
-$("#monthFilter").onchange=render; $("#vehicleFilter").onchange=render; $("#driverFilter").onchange=render;
-$("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;render()};
+$("#monthFilter").onchange=render; $("#vehicleFilter").onchange=()=>{updateVehicleFilterStyle();render();}; $("#driverFilter").onchange=render;
+$("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;updateVehicleFilterStyle();render()};
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;renderManage()});
 
 const now=new Date();
