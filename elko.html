@@ -35,7 +35,7 @@
     .vehicle.active{border-color:#2cb766;box-shadow:0 0 0 1px #2cb76622 inset}
     .vehicle .top{display:flex;justify-content:space-between;gap:8px}.vehicle strong{font-size:17px}
     .status{font-size:11px;padding:5px 8px;border-radius:999px;font-weight:900}
-    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}
+    .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}\n    .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}\n    .status.deleted{background:#30272a;color:#b8aeb1}
     .vehicle .driver{font-size:20px;font-weight:900;margin:14px 0 5px}.vehicle .meta{color:var(--muted);font-size:13px}
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
     table{width:100%;border-collapse:collapse;min-width:1050px}
@@ -208,18 +208,21 @@ function render(){
   const trips=filteredTrips();
   const activeVehicles=state.vehicles.filter(v=>v.active!==false);
   $("#vehicleCount").textContent=activeVehicles.length;
-  $("#activeVehicleCount").textContent=activeVehicles.filter(v=>v.current_driver_id).length;
+  $("#activeVehicleCount").textContent=activeVehicles.filter(v=>v.current_driver_id&&(v.operational_status||"bereit")==="bereit").length;
   $("#tripCount").textContent=trips.length;
   $("#kmTotal").textContent=trips.reduce((a,t)=>a+(Number(t.total_km)||0),0).toLocaleString("de-DE");
 
   $("#vehicles").innerHTML=activeVehicles.map(v=>{
     const driver=v.current_driver_id?mapDriver(v.current_driver_id):"Kein Fahrer";
-    const active=!!v.current_driver_id;
+    const occupied=!!v.current_driver_id;
     const open=state.trips.find(t=>t.vehicle_id===v.id&&!t.ended_at);
-    return `<article class="vehicle ${active?"active":""}">
-      <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${active?"on":"off"}">${active?"BESETZT":"FREI"}</span></div>
-      <div class="driver">${esc(driver)}</div>
-      <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since?`· seit ${timeDE(v.driver_since)}`:""}</div>
+    const op=v.operational_status||"bereit";
+    const statusLabel=op==="werkstatt"?"WERKSTATT":op==="ausfall"?"AUSFALL":occupied?"BESETZT":"FREI";
+    const statusClass=op==="werkstatt"?"workshop":op==="ausfall"?"outage":occupied?"on":"off";
+    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""}">
+      <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${statusClass}">${statusLabel}</span></div>
+      <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
+      <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
       ${open?`<div class="meta" style="margin-top:7px;color:#76eaa0">Tour läuft · ${esc(open.route_label||"")}</div>`:""}
     </article>`;
   }).join("") || '<div class="empty">Keine Fahrzeuge angelegt.</div>';
@@ -248,8 +251,13 @@ function renderManage(){
       <div class="actions"><button onclick="driverForm('${d.id}')">Bearbeiten</button>${d.active!==false?`<button class="danger" onclick="softDeleteDriver('${d.id}')">Löschen</button>`:""}</div></div>`).join("")}</div>`;
   }else if(state.tab==="vehicles"){
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="vehicleForm()">+ Fahrzeug</button></div>
-      <div class="list">${state.vehicles.map(v=>`<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km</div></div>
-      <div class="actions"><button onclick="vehicleForm('${v.id}')">Bearbeiten</button></div></div>`).join("")}</div>`;
+      <div class="list">${state.vehicles.map(v=>{
+        const op=v.operational_status||"bereit";
+        const status= v.active===false ? "GELÖSCHT" : op==="werkstatt" ? "WERKSTATT" : op==="ausfall" ? "AUSFALL" : "BEREIT";
+        const reason=(op!=="bereit"&&v.status_reason)?` · ${esc(v.status_reason)}`:"";
+        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><div class="small">${Number(v.current_mileage||0).toLocaleString("de-DE")} km · ${status}${reason}</div></div>
+        <div class="actions"><button onclick="vehicleForm('${v.id}')">Bearbeiten</button>${v.active!==false?`<button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`:""}</div></div>`
+      }).join("")}</div>`;
   }else{
     box.innerHTML=`<div style="margin-bottom:10px"><button class="primary" onclick="routeForm()">+ Standardroute</button></div>
       <div class="list">${state.routes.map(r=>{const v=mapVehicle(r.vehicle_id);return `<div class="rowcard"><div><strong>${esc(r.route_label||r.name)}</strong><div class="small">${esc(v?.plate||"alle")} · ${esc(r.start_point)} → ${esc(r.destination)} → ${esc(r.end_point)}</div></div>
@@ -284,13 +292,72 @@ window.vehicleForm=id=>{
     {id:"name",label:"Fahrzeug",value:v.name},{id:"plate",label:"Kennzeichen",value:v.plate},
     {id:"km",label:"Kilometerstand",type:"number",value:v.current_mileage??""}
   ],async()=>{try{
-    const body={name:val("name"),plate:val("plate"),current_mileage:Number(val("km")||0),active:true};
+    const body={name:val("name"),plate:val("plate"),current_mileage:Number(val("km")||0),active:true};\n    if(!id){body.operational_status="bereit";body.status_reason="";}
     if(!body.name||!body.plate) return toast("Fahrzeug und Kennzeichen fehlen");
     if(id) await api(`elko_vehicles?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
     else await api("elko_vehicles",{method:"POST",body:JSON.stringify(body)});
     $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
   }catch(e){toast(e.message)}});
 };
+window.vehicleStatusForm=id=>{
+  const v=state.vehicles.find(x=>x.id===id);
+  if(!v) return;
+  const current=v.operational_status||"bereit";
+  $("#formTitle").textContent="Fahrzeugstatus";
+  $("#formFields").innerHTML=`
+    <label>Status
+      <select id="f_status">
+        <option value="bereit" ${current==="bereit"?"selected":""}>Bereit / im Einsatz</option>
+        <option value="werkstatt" ${current==="werkstatt"?"selected":""}>In Werkstatt</option>
+        <option value="ausfall" ${current==="ausfall"?"selected":""}>Ausfall</option>
+      </select>
+    </label>
+    <label class="full">Grund / Hinweis
+      <input id="f_reason" value="${esc(v.status_reason||"")}" placeholder="z. B. Bremsen, Motorkontrollleuchte, HU">
+    </label>`;
+  $("#formSave").onclick=async()=>{try{
+    const status=$("#f_status").value;
+    const reason=$("#f_reason").value.trim();
+    if((status==="werkstatt"||status==="ausfall")&&!reason) return toast("Bitte einen Grund eintragen.");
+    const body={
+      operational_status:status,
+      status_reason:status==="bereit"?"":reason,
+      status_updated_at:new Date().toISOString()
+    };
+    if(status!=="bereit"){
+      body.current_driver_id=null;
+      body.driver_since=null;
+    }
+    await api(`elko_vehicles?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
+    $("#formDialog").close(); await loadAll();
+    toast(status==="bereit"?"Fahrzeug wieder bereit.":status==="werkstatt"?"Fahrzeug auf Werkstatt gesetzt.":"Fahrzeug auf Ausfall gesetzt.");
+  }catch(e){toast(e.message)}};
+  $("#formDialog").showModal();
+};
+
+window.softDeleteVehicle=async id=>{
+  const v=state.vehicles.find(x=>x.id===id);
+  if(!v) return;
+  const open=state.trips.find(t=>t.vehicle_id===id&&!t.ended_at);
+  if(open) return toast("Fahrzeug hat noch eine laufende Tour. Erst Tour stoppen.");
+  if(!confirm(`${v.name} · ${v.plate} aus dem aktiven Fuhrpark löschen?\n\nHistorische Fahrten bleiben vollständig erhalten.`)) return;
+  try{
+    await api(`elko_vehicles?id=eq.${id}`,{
+      method:"PATCH",
+      body:JSON.stringify({
+        active:false,
+        current_driver_id:null,
+        driver_since:null,
+        operational_status:"ausfall",
+        status_reason:"Aus Fuhrpark entfernt",
+        status_updated_at:new Date().toISOString()
+      })
+    });
+    await loadAll();
+    toast("Fahrzeug aus aktivem Fuhrpark entfernt.");
+  }catch(e){toast(e.message)}
+};
+
 window.routeForm=id=>{
   const r=state.routes.find(x=>x.id===id)||{};
   const vOptions=state.vehicles.filter(v=>v.active!==false).map(v=>`<option value="${v.id}" ${v.id===r.vehicle_id?"selected":""}>${esc(v.name)} · ${esc(v.plate)}</option>`).join("");
