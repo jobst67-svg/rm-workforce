@@ -1,4 +1,18 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "host",
+          "value": "elko.rm-workforce.de"
+        }
+      ],
+      "destination": "/elko.html"
+    }
+  ],
   "headers": [
     {
       "source": "/register.html",
@@ -27,6 +41,10 @@
     {
       "source": "/email-abmelden.html",
       "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
+    },
+    {
+      "source": "/elko.html",
+      "headers": [{"key":"X-Robots-Tag","value":"noindex, nofollow"}]
     }
   ]
 }
