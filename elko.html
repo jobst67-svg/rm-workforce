@@ -99,7 +99,19 @@
     .rowcard .actions{display:flex;gap:7px}.rowcard button{padding:7px 10px;font-size:12px}
     .toast{position:fixed;right:18px;bottom:18px;background:#10181c;border:1px solid var(--line);padding:13px 16px;border-radius:12px;box-shadow:0 10px 35px #0008;display:none;z-index:100}
     @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)} header{align-items:flex-start;flex-direction:column}}
-    @media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.form-grid{grid-template-columns:1fr}}
+    @media(max-width:520px){
+      .wrap{padding:12px}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+      .metric{padding:13px}
+      .metric .label{font-size:10px;letter-spacing:.04em}
+      .metric .value{font-size:25px;margin-top:5px}
+      .metric .sub{font-size:11px;line-height:1.25}
+      .monthly-only{display:none!important}
+      .form-grid{grid-template-columns:1fr}
+      .search-card input{min-width:0;width:100%}
+      .search-card .search-wrap{align-items:stretch}
+      .search-card .search-wrap button{width:100%}
+    }
     @media print{
       body{background:#fff;color:#000}.toolbar,.filters,.badge,.vehicles,.metric,.tabs,#manageBtn{display:none!important}
       .wrap{max-width:none;padding:0}.card,.table-wrap{border:0;background:#fff}.section-title{margin-top:0}
@@ -141,7 +153,7 @@
   </section>
   <section id="vehicles" class="vehicles"></section>
 
-  <div class="section-title">
+  <div class="section-title monthly-only">
     <h2>Monatsfahrten</h2>
     <div class="toolbar">
       <button id="xlsxBtn" class="primary">Excel herunterladen</button>
@@ -150,7 +162,7 @@
     </div>
   </div>
 
-  <section class="card">
+  <section class="card monthly-only">
     <div class="filters">
       <label>Monat <input type="month" id="monthFilter"></label>
       <label>Fahrzeug <select id="vehicleFilter"><option value="">Alle Fahrzeuge</option></select></label>
@@ -159,7 +171,7 @@
     </div>
   </section>
 
-  <div class="table-wrap" style="margin-top:12px">
+  <div class="table-wrap monthly-only" style="margin-top:12px">
     <table>
       <thead>
         <tr>
