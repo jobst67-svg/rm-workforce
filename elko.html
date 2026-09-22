@@ -33,7 +33,10 @@
     .vehicles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
     .vehicle{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
     .vehicle.active{border-color:#2cb766;box-shadow:0 0 0 1px #2cb76622 inset}
-    .vehicle .top{display:flex;justify-content:space-between;gap:8px}.vehicle strong{font-size:17px}
+    .vehicle .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .vehicle-id{min-width:0}
+    .vehicle-name{font-size:16px;font-weight:800;line-height:1.2}
+    .vehicle-plate{font-size:20px;font-weight:900;line-height:1.2;margin-top:4px;letter-spacing:.02em}
     .status{font-size:11px;padding:5px 8px;border-radius:999px;font-weight:900}
     .status.on{background:var(--green2);color:#74ec9f}.status.off{background:#252d31;color:#aebbc1}
     .status.workshop{background:#3a2d12;color:#ffd36c}.status.outage{background:#401c1a;color:#ff8d86}
@@ -49,6 +52,7 @@
     option.status-workshop{background:#3a2d12;color:#ffd36c}
     option.status-outage{background:#401c1a;color:#ff9a94}
     .vehicle .driver{font-size:20px;font-weight:900;margin:14px 0 5px}.vehicle .meta{color:var(--muted);font-size:13px}
+    .vehicle{cursor:pointer;position:relative}
     .vehicle.accident-clickable{cursor:pointer;position:relative}
     .vehicle.accident-clickable:hover{transform:translateY(-1px);filter:brightness(1.05)}
     .accident-hint{margin-top:10px;color:#ff9a94;font-weight:900;font-size:12px}
@@ -374,12 +378,18 @@ function render(){
     const isAccident=!!accident || /unfall/i.test(v.status_reason||"");
     const statusLabel=meta.cls==="ready"?(occupied?"BESETZT":"FREI"):meta.label;
     const statusClass=meta.cls==="ready"?(occupied?"on":"off"):meta.cls;
-    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" ${isAccident?`onclick="openAccident('${v.id}')"`:""}>
-      <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${statusClass}">${statusLabel}</span></div>
+    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" onclick="openVehicleCard('${v.id}')">
+      <div class="top">
+        <div class="vehicle-id">
+          <div class="vehicle-name">${esc(v.name)}</div>
+          <div class="vehicle-plate">${esc(v.plate)}</div>
+        </div>
+        <span class="status ${statusClass}">${statusLabel}</span>
+      </div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
       ${open?`<div class="meta" style="margin-top:7px;color:#76eaa0">Tour läuft · ${esc(open.route_label||"")}</div>`:""}
-      ${isAccident?`<div class="accident-hint">Unfalldaten öffnen →</div>`:""}
+      ${isAccident?`<div class="accident-hint" onclick="event.stopPropagation();openAccident('${v.id}')">Unfalldaten öffnen →</div>`:""}
     </article>`;
   }).join("") || '<div class="empty">Keine Fahrzeuge angelegt.</div>';
 
@@ -498,6 +508,48 @@ window.vehicleForm=id=>{
     $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
   }catch(e){toast(e.message)}});
 };
+window.openVehicleCard=id=>{
+  const v=state.vehicles.find(x=>x.id===id);
+  if(!v) return;
+
+  const op=v.operational_status||"bereit";
+  const accident=getAccidentForVehicle(id) || /unfall/i.test(v.status_reason||"");
+  const currentDriver=v.current_driver_id?mapDriver(v.current_driver_id):"Kein Fahrer";
+
+  if(op!=="bereit"){
+    const vm=vehicleStatusMeta(v);
+    $("#formTitle").textContent=`${v.name} · ${v.plate}`;
+    $("#formFields").innerHTML=`
+      <div class="full">
+        <div class="small">Status</div>
+        <div style="font-size:20px;font-weight:900;margin-top:4px">${vm.label}</div>
+      </div>
+      <div class="full">
+        <div class="small">Grund</div>
+        <div style="font-size:16px;margin-top:4px;white-space:pre-wrap">${esc(v.status_reason||"Kein Grund eingetragen")}</div>
+      </div>
+      <div class="full">
+        <div class="small">Kilometerstand</div>
+        <div style="font-size:18px;font-weight:800;margin-top:4px">${Number(v.current_mileage||0).toLocaleString("de-DE")} km</div>
+      </div>
+      ${accident?`<div class="full"><button type="button" class="danger" id="vehicleAccidentBtn">Unfalldaten öffnen</button></div>`:""}
+    `;
+    $("#formSave").style.display="none";
+    $("#formDialog").showModal();
+    if(accident){
+      $("#vehicleAccidentBtn").onclick=()=>{
+        $("#formDialog").close();
+        openAccident(id);
+      };
+    }
+    const closeHandler=()=>{$("#formSave").style.display="";$("#formDialog").removeEventListener("close",closeHandler);};
+    $("#formDialog").addEventListener("close",closeHandler);
+    return;
+  }
+
+  assignVehicleForm(id);
+};
+
 window.assignVehicleForm=id=>{
   const v=state.vehicles.find(x=>x.id===id);
   if(!v) return;
@@ -536,9 +588,13 @@ window.assignVehicleForm=id=>{
     ...availableDrivers.map(d=>`<option value="${d.id}" ${d.id===v.current_driver_id?"selected":""}>${esc(d.name)}${d.short_code?` · ${esc(d.short_code)}`:""}</option>`)
   ].join("");
 
+  $("#formSave").style.display="";
   $("#formTitle").textContent="Fahrzeug zuweisen";
   $("#formFields").innerHTML=`
-    <div class="full small" style="margin-bottom:2px">${esc(v.name)} · ${esc(v.plate)}</div>
+    <div class="full">
+      <div class="vehicle-name">${esc(v.name)}</div>
+      <div class="vehicle-plate">${esc(v.plate)}</div>
+    </div>
     <label class="full">Fahrer
       <select id="f_assign_driver">${options}</select>
     </label>
