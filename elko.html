@@ -510,9 +510,20 @@ window.assignVehicleForm=id=>{
     return;
   }
 
-  const availableDrivers=state.drivers.filter(d=>d.active!==false && (d.availability_status||"bereit")==="bereit");
-  if(!availableDrivers.length){
-    toast("Kein verfügbarer Fahrer vorhanden.");
+  const assignedDriverIds=new Set(
+    state.vehicles
+      .filter(x=>x.active!==false && x.current_driver_id && x.id!==id)
+      .map(x=>x.current_driver_id)
+  );
+
+  const availableDrivers=state.drivers.filter(d=>
+    d.active!==false &&
+    (d.availability_status||"bereit")==="bereit" &&
+    (!assignedDriverIds.has(d.id) || d.id===v.current_driver_id)
+  );
+
+  if(!availableDrivers.length && !v.current_driver_id){
+    toast("Kein freier Fahrer vorhanden.");
     return;
   }
 
