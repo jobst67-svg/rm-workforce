@@ -111,6 +111,22 @@
       .search-card input{min-width:0;width:100%}
       .search-card .search-wrap{align-items:stretch}
       .search-card .search-wrap button{width:100%}
+
+      #accidentDialog{width:96vw;max-height:94vh}
+      #accidentDialog .dialog-body{padding:14px}
+      #accidentDialog .accident-grid{grid-template-columns:1fr}
+      #accidentDialog .accident-grid .full{grid-column:auto}
+      #accidentDialog .toolbar:has(#acc_images_input){display:none!important}
+      #accidentDialog .dialog-actions{display:none!important}
+      #accidentDialog input:not([type="file"]),
+      #accidentDialog textarea,
+      #accidentDialog select{
+        background:#141d22;
+        border-color:#26343b;
+        color:var(--text);
+        opacity:1;
+        -webkit-text-fill-color:var(--text);
+      }
     }
     @media print{
       body{background:#fff;color:#000}.toolbar,.filters,.badge,.vehicles,.metric,.tabs,#manageBtn{display:none!important}
@@ -987,6 +1003,17 @@ document.addEventListener("keydown",e=>{
   if(e.key==="ArrowRight"){accidentViewerIndex++;updateAccidentViewer();}
 });
 
+function applyAccidentMobileMode(){
+  const mobile=window.matchMedia("(max-width:520px)").matches;
+  ["#acc_case","#acc_at","#acc_location","#acc_opponent","#acc_opponent_plate","#acc_opponent_contact","#acc_insurance","#acc_police","#acc_report"]
+    .forEach(sel=>{
+      const el=$(sel);
+      if(el) el.readOnly=mobile;
+    });
+  const status=$("#acc_status");
+  if(status) status.disabled=mobile;
+}
+
 window.openAccident=async vehicleId=>{
   const v=mapVehicle(vehicleId);
   if(!v) return;
@@ -1014,6 +1041,7 @@ window.openAccident=async vehicleId=>{
     $("#acc_report").value=a.report||"";
     $("#acc_images_input").value="";
     renderAccidentImages(a.images||[]);
+    applyAccidentMobileMode();
 
     if(a.id){
       const idx=state.accidents.findIndex(x=>x.id===a.id);
@@ -1242,6 +1270,7 @@ $("#acc_save_btn").onclick=async()=>{
   }catch(e){toast(e.message)}
 };
 $("#acc_upload_btn").onclick=uploadAccidentImages;
+window.addEventListener("resize",applyAccidentMobileMode);
 
 function monthLabelDE(value){
   if(!value) return "Monat";
