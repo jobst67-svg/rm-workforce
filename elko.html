@@ -122,7 +122,8 @@
     <h2>Monatsfahrten</h2>
     <div class="toolbar">
       <button id="xlsxBtn" class="primary">Excel herunterladen</button>
-      <button id="printBtn">Drucken / PDF</button>
+      <button id="pdfPreviewBtn">PDF Vorschau</button>
+      <button id="pdfAllBtn" class="blue">Gesamt-PDF herunterladen</button>
     </div>
   </div>
 
@@ -250,6 +251,8 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://lzdnddavnhtacrcwaxqh.supabase.co";
@@ -853,6 +856,116 @@ $("#acc_save_btn").onclick=async()=>{
 };
 $("#acc_upload_btn").onclick=uploadAccidentImages;
 
+function pdfText(v){
+  return String(v??"")
+    .replace(/→/g,"->")
+    .replace(/[–—]/g,"-");
+}
+
+function buildVehiclePdf(trips, title="ELKO-TOURS Fahrtennachweis"){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  const completed=trips.filter(t=>t.ended_at).slice().sort((a,b)=>{
+    const va=mapVehicle(a.vehicle_id), vb=mapVehicle(b.vehicle_id);
+    const pa=(va?.plate||va?.name||"").localeCompare(vb?.plate||vb?.name||"","de");
+    return pa || new Date(a.started_at)-new Date(b.started_at);
+  });
+
+  const groups=[];
+  for(const t of completed){
+    let g=groups.find(x=>x.vehicleId===t.vehicle_id);
+    if(!g){
+      g={vehicleId:t.vehicle_id,trips:[]};
+      groups.push(g);
+    }
+    g.trips.push(t);
+  }
+
+  groups.forEach((g,index)=>{
+    if(index>0) doc.addPage("a4","landscape");
+    const v=mapVehicle(g.vehicleId)||{};
+    const list=g.trips.slice().sort((a,b)=>new Date(a.started_at)-new Date(b.started_at));
+    const total=list.reduce((sum,t)=>sum+(Number(t.total_km)||0),0);
+    const from=list[0]?.started_at ? dateDE(list[0].started_at) : "-";
+    const to=list[list.length-1]?.started_at ? dateDE(list[list.length-1].started_at) : "-";
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(15);
+    doc.text(pdfText(title),14,14);
+
+    doc.setFontSize(12);
+    doc.text(pdfText(v.name||"Fahrzeug"),14,22);
+    doc.setFontSize(14);
+    doc.text(pdfText(v.plate||""),14,29);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+    doc.text(pdfText(`Zeitraum: ${from} bis ${to}   |   Fahrten: ${list.length}   |   Gesamt: ${total.toLocaleString("de-DE")} km`),14,36);
+
+    doc.autoTable({
+      startY:41,
+      margin:{left:14,right:14,bottom:13},
+      head:[["Datum","Fahrer","Fahrstrecke","Sonderziele","Anfang","Ende","Linien-km","Sonder-km","Gesamt-km"]],
+      body:list.map(t=>[
+        dateDE(t.started_at),
+        pdfText(mapDriver(t.driver_id)),
+        pdfText(t.route_label||"-"),
+        pdfText(t.special_destinations||""),
+        Number(t.start_mileage||0).toLocaleString("de-DE"),
+        Number(t.end_mileage||0).toLocaleString("de-DE"),
+        Number(t.line_km||0).toLocaleString("de-DE"),
+        Number(t.special_km||0).toLocaleString("de-DE"),
+        Number(t.total_km||0).toLocaleString("de-DE")
+      ]),
+      styles:{font:"helvetica",fontSize:7.5,cellPadding:1.8,overflow:"linebreak"},
+      headStyles:{fontStyle:"bold"},
+      columnStyles:{
+        0:{cellWidth:20},
+        1:{cellWidth:31},
+        2:{cellWidth:22},
+        3:{cellWidth:49},
+        4:{cellWidth:25,halign:"right"},
+        5:{cellWidth:25,halign:"right"},
+        6:{cellWidth:23,halign:"right"},
+        7:{cellWidth:23,halign:"right"},
+        8:{cellWidth:24,halign:"right",fontStyle:"bold"}
+      },
+      didDrawPage:data=>{
+        const page=doc.internal.getCurrentPageInfo().pageNumber;
+        doc.setFont("helvetica","normal");
+        doc.setFontSize(7);
+        doc.text(pdfText(`ELKO-TOURS · Fahrtenbuch · Seite ${page}`),14,202);
+      }
+    });
+  });
+
+  return doc;
+}
+
+function previewPdf(){
+  const trips=filteredTrips();
+  if(!trips.length) return toast("Keine Fahrten für die PDF-Vorschau.");
+  const selectedVehicle=$("#vehicleFilter").value;
+  const vehicle=selectedVehicle?mapVehicle(selectedVehicle):null;
+  const title=vehicle
+    ? `ELKO-TOURS Fahrtennachweis · ${vehicle.plate}`
+    : "ELKO-TOURS Fahrtennachweis";
+  const doc=buildVehiclePdf(trips,title);
+  const url=doc.output("bloburl");
+  const w=window.open(url,"_blank");
+  if(!w) toast("PDF-Vorschau wurde vom Browser blockiert.");
+}
+
+function downloadAllPdf(){
+  const trips=state.trips.filter(t=>t.ended_at);
+  if(!trips.length) return toast("Keine Fahrten für den Gesamt-PDF.");
+  const doc=buildVehiclePdf(trips,"ELKO-TOURS Gesamtfahrtenbuch");
+  const dates=trips.map(t=>new Date(t.started_at)).sort((a,b)=>a-b);
+  const from=`${dates[0].getFullYear()}-${String(dates[0].getMonth()+1).padStart(2,"0")}`;
+  const to=`${dates[dates.length-1].getFullYear()}-${String(dates[dates.length-1].getMonth()+1).padStart(2,"0")}`;
+  doc.save(`ELKO_Gesamtfahrtenbuch_${from}_bis_${to}.pdf`);
+}
+
 function exportXlsx(){
   const trips=filteredTrips();
   if(!trips.length) return toast("Keine Daten zum Exportieren.");
@@ -867,7 +980,9 @@ function exportXlsx(){
   const month=$("#monthFilter").value||"alle";
   XLSX.writeFile(wb,`ELKO_Fahrtennachweis_${month}.xlsx`);
 }
-$("#xlsxBtn").onclick=exportXlsx; $("#printBtn").onclick=()=>window.print();
+$("#xlsxBtn").onclick=exportXlsx;
+$("#pdfPreviewBtn").onclick=previewPdf;
+$("#pdfAllBtn").onclick=downloadAllPdf;
 $("#refreshBtn").onclick=loadAll; $("#manageBtn").onclick=()=>{$("#manageDialog").showModal();renderManage()};
 $("#monthFilter").onchange=render; $("#vehicleFilter").onchange=()=>{updateVehicleFilterStyle();render();}; $("#driverFilter").onchange=render;
 $("#clearFilters").onclick=()=>{$("#vehicleFilter").value="";$("#driverFilter").value="";const n=new Date();$("#monthFilter").value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;updateVehicleFilterStyle();render()};
