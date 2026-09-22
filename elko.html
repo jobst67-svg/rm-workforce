@@ -25,7 +25,7 @@
     .primary{background:var(--green);border-color:var(--green)} .blue{background:var(--blue);border-color:var(--blue)}
     .danger{background:var(--red);border-color:var(--red)}
     .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
-    .workforce-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:-4px}
+    .workforce-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:-4px}
     .card{background:rgba(23,33,38,.96);border:1px solid var(--line);border-radius:18px;padding:18px}
     .metric .label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}
     .metric .value{font-size:32px;font-weight:900;margin-top:7px}.metric .sub{color:var(--muted);margin-top:5px}
@@ -33,11 +33,20 @@
     .metric.sick-metric .label,.metric.sick-metric .value{color:#ff8d86}
     .metric.vacation-metric{border-color:#245a82;background:linear-gradient(180deg,#142b3d,#172126);cursor:pointer}
     .metric.vacation-metric .label,.metric.vacation-metric .value{color:#93d3ff}
-    .metric.sick-metric:hover,.metric.vacation-metric:hover{filter:brightness(1.08)}
+    .metric.uvv-metric{border-color:#8d6a22;background:linear-gradient(180deg,#3a2d12,#172126);cursor:pointer}
+    .metric.uvv-metric .label,.metric.uvv-metric .value{color:#ffd36c}
+    .metric.service-metric{border-color:#8f4f24;background:linear-gradient(180deg,#382317,#172126);cursor:pointer}
+    .metric.service-metric .label,.metric.service-metric .value{color:#ffad73}
+    .metric.sick-metric:hover,.metric.vacation-metric:hover,.metric.uvv-metric:hover,.metric.service-metric:hover{filter:brightness(1.08)}
     .absence-list{display:grid;gap:9px}
     .absence-row{padding:12px;border:1px solid var(--line);border-radius:12px;background:#131c20}
     .absence-row strong{font-size:16px}
     .absence-reason{margin-top:4px;color:var(--muted);font-size:13px}
+    .due-main{font-size:16px;font-weight:900;margin-top:3px}
+    .due-meta{margin-top:5px;font-size:13px;color:var(--muted);line-height:1.45}
+    .due-phone{display:inline-block;margin-top:6px;color:#93d3ff;font-weight:800;text-decoration:none}
+    .form-section{margin-top:6px;padding:10px 0 2px;border-top:1px solid var(--line);font-weight:900;color:var(--muted)}
+    .rowcard .actions{flex-wrap:wrap}
     .section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:26px 0 10px}
     .section-title h2{font-size:19px;margin:0}.small{font-size:12px;color:var(--muted)}
     .vehicles{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
@@ -170,6 +179,8 @@
   <section class="grid workforce-grid">
     <div class="card metric sick-metric" onclick="openAbsenceList('krank')" title="Kranke Fahrer anzeigen"><div class="label">Krank</div><div id="sickCount" class="value">–</div><div class="sub">Fahrer aktuell krank</div></div>
     <div class="card metric vacation-metric" onclick="openAbsenceList('urlaub')" title="Fahrer im Urlaub anzeigen"><div class="label">Urlaub</div><div id="vacationCount" class="value">–</div><div class="sub">Fahrer aktuell im Urlaub</div></div>
+    <div class="card metric uvv-metric" onclick="openVehicleDueList('uvv')" title="Fällige UVV-Termine anzeigen"><div class="label">UVV fällig</div><div id="uvvDueCount" class="value">–</div><div class="sub">Fahrzeuge mit fälliger UVV</div></div>
+    <div class="card metric service-metric" onclick="openVehicleDueList('service')" title="Fällige Service-Termine anzeigen"><div class="label">Service fällig</div><div id="serviceDueCount" class="value">–</div><div class="sub">Fahrzeuge mit fälligem Service</div></div>
   </section>
 
   <div class="section-title">
@@ -410,6 +421,23 @@ function vehicleCategoryLabel(v){
   return (v.vehicle_category||"reisebus")==="kleinbus" ? "9-Sitzer" : "Reisebus";
 }
 
+function isVehicleDue(value){
+  if(!value) return false;
+  const d=new Date(value);
+  return !Number.isNaN(d.getTime()) && d.getTime()<=Date.now();
+}
+
+function dueDateTimeDE(value){
+  if(!value) return "Kein Termin hinterlegt";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime())) return "Ungültiger Termin";
+  return d.toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+function phoneHref(value){
+  return String(value||"").replace(/[^+\d]/g,"");
+}
+
 function normalizeSearch(v){
   return String(v??"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
@@ -429,7 +457,9 @@ function vehicleMatchesSearch(v,tokens){
   const meta=vehicleStatusMeta(v);
   return matchesTokens([
     v.name,v.plate,vehicleCategoryLabel(v),driver,meta.label,meta.detail,
-    v.status_reason,v.current_mileage
+    v.status_reason,v.current_mileage,
+    v.uvv_due_at,v.uvv_contact,v.uvv_phone,
+    v.service_due_at,v.service_workshop,v.service_phone
   ],tokens);
 }
 
@@ -442,6 +472,38 @@ function tripMatchesSearch(t,tokens){
     t.trip_type,t.purpose,t.start_mileage,t.end_mileage,t.line_km,t.special_km,t.total_km
   ],tokens);
 }
+
+window.openVehicleDueList=type=>{
+  const isUvv=type==="uvv";
+  const field=isUvv?"uvv_due_at":"service_due_at";
+  const vehicles=state.vehicles
+    .filter(v=>v.active!==false && isVehicleDue(v[field]))
+    .slice()
+    .sort((a,b)=>new Date(a[field])-new Date(b[field]) || String(a.plate||"").localeCompare(String(b.plate||""),"de",{numeric:true}));
+
+  $("#absenceTitle").textContent=isUvv?"UVV fällig":"Service fällig";
+  $("#absenceContent").innerHTML=vehicles.length
+    ? vehicles.map(v=>{
+        const driver=v.current_driver_id?mapDriver(v.current_driver_id):"Kein Fahrer";
+        const meta=vehicleStatusMeta(v);
+        const phone=isUvv?v.uvv_phone:v.service_phone;
+        const contact=isUvv?v.uvv_contact:v.service_workshop;
+        return `
+          <div class="absence-row">
+            <div class="small">${vehicleCategoryLabel(v)} · ${esc(meta.label)}</div>
+            <div class="due-main">${esc(v.name)} · ${esc(v.plate)}</div>
+            <div class="due-meta">
+              ${Number(v.current_mileage||0).toLocaleString("de-DE")} km · Fahrer: ${esc(driver)}<br>
+              <strong>${isUvv?"UVV-Termin":"Service-Termin"}:</strong> ${esc(dueDateTimeDE(v[field]))}<br>
+              <strong>${isUvv?"Prüfstelle / Ansprechpartner":"Werkstatt"}:</strong> ${esc(contact||"Nicht hinterlegt")}
+            </div>
+            ${phone?`<a class="due-phone" href="tel:${esc(phoneHref(phone))}">☎ ${esc(phone)}</a>`:'<div class="absence-reason">Keine Telefonnummer hinterlegt.</div>'}
+          </div>`;
+      }).join("")
+    : `<div class="empty">Aktuell ist kein ${isUvv?"UVV-Termin":"Service"} fällig.</div>`;
+
+  $("#absenceDialog").showModal();
+};
 
 window.openAbsenceList=status=>{
   const isSick=status==="krank";
@@ -540,6 +602,8 @@ function render(){
   $("#activeVehicleCount").textContent=activeVehicles.filter(v=>v.current_driver_id&&(v.operational_status||"bereit")==="bereit").length;
   $("#sickCount").textContent=state.drivers.filter(d=>d.active!==false && d.availability_status==="krank").length;
   $("#vacationCount").textContent=state.drivers.filter(d=>d.active!==false && d.availability_status==="urlaub").length;
+  $("#uvvDueCount").textContent=activeVehicles.filter(v=>isVehicleDue(v.uvv_due_at)).length;
+  $("#serviceDueCount").textContent=activeVehicles.filter(v=>isVehicleDue(v.service_due_at)).length;
   $("#tripCount").textContent=trips.length;
   $("#kmTotal").textContent=trips.reduce((a,t)=>a+(Number(t.total_km)||0),0).toLocaleString("de-DE");
   $("#searchCount").textContent=tokens.length ? `${visibleVehicles.length} Fahrzeuge · ${trips.length} Fahrten gefunden` : "";
@@ -613,9 +677,11 @@ function renderManage(){
         const status=v.active===false?"GELÖSCHT":vm.label;
         const reason=(op!=="bereit"&&v.status_reason)?` · ${esc(v.status_reason)}`:"";
         const badgeClass=v.active===false?"deleted":vm.cls==="hu"?"hu":vm.cls==="workshop"?"workshop":vm.cls==="outage"?"outage":"ready";
-        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${vehicleCategoryLabel(v)} · ${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}</div></div>
+        const uvvInfo=v.uvv_due_at?` · UVV ${dateDE(v.uvv_due_at)}`:"";
+        const serviceInfo=v.service_due_at?` · Service ${dateDE(v.service_due_at)}`:"";
+        return `<div class="rowcard"><div><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="manage-status status ${badgeClass}">${status}</span><div class="small">${vehicleCategoryLabel(v)} · ${Number(v.current_mileage||0).toLocaleString("de-DE")} km${reason}${uvvInfo}${serviceInfo}</div></div>
         <div class="actions">${v.active!==false
-          ? `<button class="blue" onclick="assignVehicleForm('${v.id}')">Fahrzeug zuweisen</button><button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`
+          ? `<button onclick="vehicleForm('${v.id}')">Fahrzeugdaten</button><button class="blue" onclick="assignVehicleForm('${v.id}')">Fahrzeug zuweisen</button><button onclick="vehicleStatusForm('${v.id}')">Status</button><button class="danger" onclick="softDeleteVehicle('${v.id}')">Löschen</button>`
           : `<button class="blue" onclick="openVehicleArchivePdf('${v.id}')">${v.archive_pdf_url?"Archiv-PDF öffnen":"Archiv-PDF erstellen"}</button>`
         }</div></div>`
       }).join("")}</div>`;
@@ -686,7 +752,7 @@ window.softDeleteDriver=async id=>{
 window.vehicleForm=id=>{
   const v=state.vehicles.find(x=>x.id===id)||{};
   $("#formSave").style.display="";
-  $("#formTitle").textContent=id?"Fahrzeug bearbeiten":"Fahrzeug anlegen";
+  $("#formTitle").textContent=id?"Fahrzeugdaten bearbeiten":"Fahrzeug anlegen";
   $("#formFields").innerHTML=`
     <label>Fahrzeug<input id="f_name" value="${esc(v.name||"")}"></label>
     <label>Kennzeichen<input id="f_plate" value="${esc(v.plate||"")}"></label>
@@ -697,20 +763,38 @@ window.vehicleForm=id=>{
       </select>
     </label>
     <label>Kilometerstand<input id="f_km" type="number" value="${esc(v.current_mileage??"")}"></label>
+
+    <div class="full form-section">UVV</div>
+    <label>UVV-Termin<input id="f_uvv_due" type="datetime-local" value="${esc(toLocalDateTimeInput(v.uvv_due_at))}"></label>
+    <label>Prüfstelle / Ansprechpartner<input id="f_uvv_contact" value="${esc(v.uvv_contact||"")}" placeholder="z. B. UVV Prüfstelle"></label>
+    <label class="full">Telefon UVV<input id="f_uvv_phone" type="tel" value="${esc(v.uvv_phone||"")}" placeholder="Telefonnummer"></label>
+
+    <div class="full form-section">Service</div>
+    <label>Service-Termin<input id="f_service_due" type="datetime-local" value="${esc(toLocalDateTimeInput(v.service_due_at))}"></label>
+    <label>Werkstatt<input id="f_service_workshop" value="${esc(v.service_workshop||"")}" placeholder="Werkstatt / Ansprechpartner"></label>
+    <label class="full">Telefon Werkstatt<input id="f_service_phone" type="tel" value="${esc(v.service_phone||"")}" placeholder="Telefonnummer"></label>
   `;
   $("#formSave").onclick=async()=>{try{
+    const uvvDue=val("uvv_due");
+    const serviceDue=val("service_due");
     const body={
       name:val("name"),
       plate:val("plate"),
       vehicle_category:$("#f_category").value,
       current_mileage:Number(val("km")||0),
+      uvv_due_at:uvvDue?new Date(uvvDue).toISOString():null,
+      uvv_contact:val("uvv_contact"),
+      uvv_phone:val("uvv_phone"),
+      service_due_at:serviceDue?new Date(serviceDue).toISOString():null,
+      service_workshop:val("service_workshop"),
+      service_phone:val("service_phone"),
       active:true
     };
     if(!id){body.operational_status="bereit";body.status_reason="";}
     if(!body.name||!body.plate) return toast("Fahrzeug und Kennzeichen fehlen");
     if(id) await api(`elko_vehicles?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(body)});
     else await api("elko_vehicles",{method:"POST",body:JSON.stringify(body)});
-    $("#formDialog").close(); await loadAll(); toast("Gespeichert.");
+    $("#formDialog").close(); await loadAll(); toast("Fahrzeugdaten gespeichert.");
   }catch(e){toast(e.message)}};
   $("#formDialog").showModal();
 };
