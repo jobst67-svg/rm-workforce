@@ -246,9 +246,13 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://lzdnddavnhtacrcwaxqh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6ZG5kZGF2bmh0YWNyY3dheHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTY3MzUsImV4cCI6MjEwNDg5MjczNX0.dV5t5FBwYdhDByEUn-neX3UsfSVqARelbI7U6GHBgJA";
+const realtimeClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  realtime: { params: { eventsPerSecond: 10 } }
+});
 
 const state = {drivers:[],vehicles:[],routes:[],trips:[],accidents:[],tab:"drivers"};
 const $ = s => document.querySelector(s);
@@ -815,7 +819,43 @@ document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.tab=b.dataset.
 
 const now=new Date();
 $("#monthFilter").value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+
+realtimeClient
+  .channel("elko-vehicle-live")
+  .on(
+    "postgres_changes",
+    {event:"*",schema:"public",table:"elko_vehicles"},
+    async payload=>{
+      try{
+        const changed=payload.new || payload.old;
+        if(changed?.id){
+          const rows=await api(`elko_vehicles?select=*&id=eq.${changed.id}&limit=1`);
+          if(rows.length){
+            const idx=state.vehicles.findIndex(v=>v.id===changed.id);
+            if(idx>=0) state.vehicles[idx]=rows[0];
+            else state.vehicles.push(rows[0]);
+            fillFilters();
+            render();
+            if($("#manageDialog").open) renderManage();
+          }else{
+            await loadAll();
+          }
+        }else{
+          await loadAll();
+        }
+      }catch(e){
+        console.warn("Realtime-Aktualisierung fehlgeschlagen",e);
+      }
+    }
+  )
+  .subscribe(status=>{
+    if(status==="SUBSCRIBED"){
+      console.log("ELKO Fahrzeugstatus live verbunden");
+    }
+  });
+
 loadAll();
+// Fallback, falls eine Realtime-Verbindung unterbrochen wird.
 setInterval(loadAll,30000);
 </script>
 </body>
