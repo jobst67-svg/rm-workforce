@@ -49,6 +49,17 @@
     option.status-workshop{background:#3a2d12;color:#ffd36c}
     option.status-outage{background:#401c1a;color:#ff9a94}
     .vehicle .driver{font-size:20px;font-weight:900;margin:14px 0 5px}.vehicle .meta{color:var(--muted);font-size:13px}
+    .vehicle.accident-clickable{cursor:pointer;position:relative}
+    .vehicle.accident-clickable:hover{transform:translateY(-1px);filter:brightness(1.05)}
+    .accident-hint{margin-top:10px;color:#ff9a94;font-weight:900;font-size:12px}
+    .accident-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .accident-grid .full{grid-column:1/-1}
+    textarea{width:100%;min-height:120px;resize:vertical;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:11px 13px;font:inherit}
+    .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:10px}
+    .image-grid a{display:block;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#111}
+    .image-grid img{display:block;width:100%;height:110px;object-fit:cover}
+    .accident-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+    .accident-sub{color:var(--muted);font-size:13px;margin-top:4px}
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
     table{width:100%;border-collapse:collapse;min-width:1050px}
     th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -56,6 +67,7 @@
     tbody tr:hover{background:#1c282e}.num{text-align:right;font-variant-numeric:tabular-nums}
     .empty{padding:28px;color:var(--muted);text-align:center}
     dialog{width:min(650px,94vw);border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);padding:0}
+    #accidentDialog{width:min(900px,96vw)}
     dialog::backdrop{background:#000a}.dialog-body{padding:20px}.dialog-body h3{margin-top:0}
     .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-grid .full{grid-column:1/-1}
     .dialog-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
@@ -156,6 +168,73 @@
   </form>
 </dialog>
 
+<dialog id="accidentDialog">
+  <div class="dialog-body">
+    <div class="accident-head">
+      <div>
+        <h3 id="accidentTitle" style="margin:0">Unfallvorgang</h3>
+        <div id="accidentVehicle" class="accident-sub"></div>
+      </div>
+      <button onclick="accidentDialog.close()">✕</button>
+    </div>
+
+    <div class="accident-grid">
+      <label>Vorgangsnummer
+        <input id="acc_case" placeholder="z. B. ELKO-2026-001">
+      </label>
+      <label>Status
+        <select id="acc_status">
+          <option value="offen">Offen</option>
+          <option value="in_bearbeitung">In Bearbeitung</option>
+          <option value="abgeschlossen">Abgeschlossen</option>
+        </select>
+      </label>
+      <label>Unfalldatum / Uhrzeit
+        <input id="acc_at" type="datetime-local">
+      </label>
+      <label>Unfallort
+        <input id="acc_location" placeholder="Ort / Straße">
+      </label>
+
+      <label>Unfallgegner
+        <input id="acc_opponent" placeholder="Name">
+      </label>
+      <label>Kennzeichen Unfallgegner
+        <input id="acc_opponent_plate" placeholder="z. B. IN-X 4711">
+      </label>
+      <label>Kontakt Unfallgegner
+        <input id="acc_opponent_contact" placeholder="Telefon / E-Mail">
+      </label>
+      <label>Versicherung Unfallgegner
+        <input id="acc_insurance" placeholder="Versicherung">
+      </label>
+
+      <label class="full">Polizei / Aktenzeichen
+        <input id="acc_police" placeholder="Dienststelle / Aktenzeichen">
+      </label>
+
+      <label class="full">Unfallbericht / Hergang
+        <textarea id="acc_report" placeholder="Was ist passiert?"></textarea>
+      </label>
+
+      <div class="full">
+        <strong>Bilder</strong>
+        <div class="small" style="margin:4px 0 8px">JPG, PNG oder WebP · max. 10 MB je Bild</div>
+        <div class="toolbar">
+          <input id="acc_images_input" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+          <button type="button" class="blue" id="acc_upload_btn">Bilder hochladen</button>
+        </div>
+        <div id="acc_images" class="image-grid"></div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button onclick="accidentDialog.close()">Schließen</button>
+      <button type="button" class="primary" id="acc_save_btn">Unfallvorgang speichern</button>
+    </div>
+  </div>
+</dialog>
+
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -163,7 +242,7 @@
 const SUPABASE_URL = "https://lzdnddavnhtacrcwaxqh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6ZG5kZGF2bmh0YWNyY3dheHFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTY3MzUsImV4cCI6MjEwNDg5MjczNX0.dV5t5FBwYdhDByEUn-neX3UsfSVqARelbI7U6GHBgJA";
 
-const state = {drivers:[],vehicles:[],routes:[],trips:[],tab:"drivers"};
+const state = {drivers:[],vehicles:[],routes:[],trips:[],accidents:[],tab:"drivers"};
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 
@@ -188,6 +267,15 @@ const mapDriver=id => state.drivers.find(x=>x.id===id)?.name || "–";
 const mapVehicle=id => state.vehicles.find(x=>x.id===id);
 const dateDE=v => new Date(v).toLocaleDateString("de-DE");
 const timeDE=v => new Date(v).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+function getAccidentForVehicle(vehicleId){
+  return state.accidents.find(a=>a.vehicle_id===vehicleId) || null;
+}
+function toLocalDateTimeInput(value){
+  if(!value) return "";
+  const d=new Date(value);
+  const pad=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 function vehicleStatusMeta(v){
   const op=v.operational_status||"bereit";
   const reason=v.status_reason||"";
@@ -218,11 +306,12 @@ function updateVehicleFilterStyle(){
 
 async function loadAll(){
   try{
-    [state.drivers,state.vehicles,state.routes,state.trips] = await Promise.all([
+    [state.drivers,state.vehicles,state.routes,state.trips,state.accidents] = await Promise.all([
       api("elko_drivers?select=*&order=name.asc"),
       api("elko_vehicles?select=*&order=name.asc"),
       api("elko_routes?select=*&order=name.asc"),
-      api("elko_trips?select=*&order=started_at.desc&limit=3000")
+      api("elko_trips?select=*&order=started_at.desc&limit=3000"),
+      api("elko_accidents?select=*&order=accident_at.desc.nullslast,created_at.desc")
     ]);
     fillFilters(); render(); renderManage();
   }catch(e){toast("Fehler: "+e.message)}
@@ -264,13 +353,16 @@ function render(){
     const open=state.trips.find(t=>t.vehicle_id===v.id&&!t.ended_at);
     const op=v.operational_status||"bereit";
     const meta=vehicleStatusMeta(v);
+    const accident=getAccidentForVehicle(v.id);
+    const isAccident=!!accident || /unfall/i.test(v.status_reason||"");
     const statusLabel=meta.cls==="ready"?(occupied?"BESETZT":"FREI"):meta.label;
     const statusClass=meta.cls==="ready"?(occupied?"on":"off"):meta.cls;
-    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""}">
+    return `<article class="vehicle ${occupied&&op==="bereit"?"active":""} ${meta.cls==="hu"?"hu":meta.cls==="outage"?"outage":""} ${isAccident?"accident-clickable":""}" ${isAccident?`onclick="openAccident('${v.id}')"`:""}>`
       <div class="top"><strong>${esc(v.name)} · ${esc(v.plate)}</strong><span class="status ${statusClass}">${statusLabel}</span></div>
       <div class="driver">${op==="bereit"?esc(driver):esc(v.status_reason||"Kein Grund eingetragen")}</div>
       <div class="meta">${Number(v.current_mileage||0).toLocaleString("de-DE")} km ${v.driver_since&&op==="bereit"?`· seit ${timeDE(v.driver_since)}`:""}</div>
       ${open?`<div class="meta" style="margin-top:7px;color:#76eaa0">Tour läuft · ${esc(open.route_label||"")}</div>`:""}
+      ${isAccident?`<div class="accident-hint">Unfalldaten öffnen →</div>`:""}
     </article>`;
   }).join("") || '<div class="empty">Keine Fahrzeuge angelegt.</div>';
 
@@ -477,6 +569,123 @@ window.routeForm=id=>{
   }catch(e){toast(e.message)}};
   $("#formDialog").showModal();
 };
+
+let activeAccidentVehicleId=null;
+let activeAccidentId=null;
+
+function renderAccidentImages(images){
+  const box=$("#acc_images");
+  const list=Array.isArray(images)?images:[];
+  box.innerHTML=list.length
+    ? list.map(url=>`<a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="Unfallbild"></a>`).join("")
+    : '<div class="small">Noch keine Bilder hinterlegt.</div>';
+}
+
+window.openAccident=vehicleId=>{
+  const v=mapVehicle(vehicleId);
+  if(!v) return;
+  const a=getAccidentForVehicle(vehicleId) || {};
+  activeAccidentVehicleId=vehicleId;
+  activeAccidentId=a.id||null;
+
+  $("#accidentTitle").textContent=a.id?"Unfallvorgang":"Unfallvorgang anlegen";
+  $("#accidentVehicle").textContent=`${v.name} · ${v.plate}`;
+  $("#acc_case").value=a.case_number||"";
+  $("#acc_status").value=a.status||"offen";
+  $("#acc_at").value=toLocalDateTimeInput(a.accident_at);
+  $("#acc_location").value=a.location||"";
+  $("#acc_opponent").value=a.opponent_name||"";
+  $("#acc_opponent_plate").value=a.opponent_plate||"";
+  $("#acc_opponent_contact").value=a.opponent_contact||"";
+  $("#acc_insurance").value=a.opponent_insurance||"";
+  $("#acc_police").value=a.police_reference||"";
+  $("#acc_report").value=a.report||"";
+  $("#acc_images_input").value="";
+  renderAccidentImages(a.images||[]);
+  $("#accidentDialog").showModal();
+};
+
+async function saveAccidentRecord(){
+  if(!activeAccidentVehicleId) return null;
+  const at=$("#acc_at").value;
+  const body={
+    vehicle_id:activeAccidentVehicleId,
+    case_number:$("#acc_case").value.trim(),
+    status:$("#acc_status").value,
+    accident_at:at?new Date(at).toISOString():null,
+    location:$("#acc_location").value.trim(),
+    opponent_name:$("#acc_opponent").value.trim(),
+    opponent_plate:$("#acc_opponent_plate").value.trim(),
+    opponent_contact:$("#acc_opponent_contact").value.trim(),
+    opponent_insurance:$("#acc_insurance").value.trim(),
+    police_reference:$("#acc_police").value.trim(),
+    report:$("#acc_report").value.trim(),
+    updated_at:new Date().toISOString()
+  };
+
+  let result;
+  if(activeAccidentId){
+    result=await api(`elko_accidents?id=eq.${activeAccidentId}`,{method:"PATCH",body:JSON.stringify(body)});
+  }else{
+    result=await api("elko_accidents",{method:"POST",body:JSON.stringify(body)});
+    activeAccidentId=result?.[0]?.id||null;
+  }
+  return result?.[0]||null;
+}
+
+async function uploadAccidentImages(){
+  const files=[...($("#acc_images_input").files||[])];
+  if(!files.length) return toast("Bitte mindestens ein Bild auswählen.");
+  try{
+    let record=getAccidentForVehicle(activeAccidentVehicleId);
+    if(!activeAccidentId){
+      record=await saveAccidentRecord();
+      if(!activeAccidentId) throw new Error("Unfallvorgang konnte nicht angelegt werden.");
+    }
+    const existing=record?.images || getAccidentForVehicle(activeAccidentVehicleId)?.images || [];
+    const uploaded=[];
+
+    for(const file of files){
+      if(file.size>10*1024*1024) throw new Error(`${file.name}: größer als 10 MB`);
+      const safe=file.name.replace(/[^A-Za-z0-9._-]/g,"_");
+      const path=`${activeAccidentId}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${safe}`;
+      const res=await fetch(`${SUPABASE_URL}/storage/v1/object/elko-accidents/${path}`,{
+        method:"POST",
+        headers:{
+          apikey:SUPABASE_KEY,
+          Authorization:`Bearer ${SUPABASE_KEY}`,
+          "Content-Type":file.type,
+          "x-upsert":"true"
+        },
+        body:file
+      });
+      if(!res.ok) throw new Error(`Upload fehlgeschlagen: ${file.name}`);
+      uploaded.push(`${SUPABASE_URL}/storage/v1/object/public/elko-accidents/${path}`);
+    }
+
+    const images=[...existing,...uploaded];
+    await api(`elko_accidents?id=eq.${activeAccidentId}`,{
+      method:"PATCH",
+      body:JSON.stringify({images,updated_at:new Date().toISOString()})
+    });
+    await loadAll();
+    const fresh=getAccidentForVehicle(activeAccidentVehicleId);
+    renderAccidentImages(fresh?.images||images);
+    $("#acc_images_input").value="";
+    toast("Bilder gespeichert.");
+  }catch(e){toast(e.message)}
+}
+
+$("#acc_save_btn").onclick=async()=>{
+  try{
+    await saveAccidentRecord();
+    await loadAll();
+    toast("Unfallvorgang gespeichert.");
+    const fresh=getAccidentForVehicle(activeAccidentVehicleId);
+    if(fresh){activeAccidentId=fresh.id;renderAccidentImages(fresh.images||[]);}
+  }catch(e){toast(e.message)}
+};
+$("#acc_upload_btn").onclick=uploadAccidentImages;
 
 function exportXlsx(){
   const trips=filteredTrips();
