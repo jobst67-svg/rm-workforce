@@ -179,8 +179,8 @@
   <section class="grid workforce-grid">
     <div class="card metric sick-metric" onclick="openAbsenceList('krank')" title="Kranke Fahrer anzeigen"><div class="label">Krank</div><div id="sickCount" class="value">–</div><div class="sub">Fahrer aktuell krank</div></div>
     <div class="card metric vacation-metric" onclick="openAbsenceList('urlaub')" title="Fahrer im Urlaub anzeigen"><div class="label">Urlaub</div><div id="vacationCount" class="value">–</div><div class="sub">Fahrer aktuell im Urlaub</div></div>
-    <div class="card metric uvv-metric" onclick="openVehicleDueList('uvv')" title="Fällige UVV-Termine anzeigen"><div class="label">UVV fällig</div><div id="uvvDueCount" class="value">–</div><div class="sub">Fahrzeuge mit fälliger UVV</div></div>
-    <div class="card metric service-metric" onclick="openVehicleDueList('service')" title="Fällige Service-Termine anzeigen"><div class="label">Service fällig</div><div id="serviceDueCount" class="value">–</div><div class="sub">Fahrzeuge mit fälligem Service</div></div>
+    <div class="card metric uvv-metric" onclick="openVehicleDueList('uvv')" title="UVV-Termine innerhalb der nächsten 14 Tage anzeigen"><div class="label">UVV fällig</div><div id="uvvDueCount" class="value">–</div><div class="sub">fällig in den nächsten 14 Tagen</div></div>
+    <div class="card metric service-metric" onclick="openVehicleDueList('service')" title="Service-Termine innerhalb der nächsten 14 Tage anzeigen"><div class="label">Service fällig</div><div id="serviceDueCount" class="value">–</div><div class="sub">fällig in den nächsten 14 Tagen</div></div>
   </section>
 
   <div class="section-title">
@@ -424,7 +424,24 @@ function vehicleCategoryLabel(v){
 function isVehicleDue(value){
   if(!value) return false;
   const d=new Date(value);
-  return !Number.isNaN(d.getTime()) && d.getTime()<=Date.now();
+  if(Number.isNaN(d.getTime())) return false;
+  const now=Date.now();
+  const dueWindow=14*24*60*60*1000;
+  return d.getTime()<=now+dueWindow;
+}
+
+function dueStatusText(value){
+  if(!value) return "";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime())) return "";
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const dueDay=new Date(d);
+  dueDay.setHours(0,0,0,0);
+  const diff=Math.round((dueDay-today)/(24*60*60*1000));
+  if(diff<0) return `überfällig seit ${Math.abs(diff)} Tag${Math.abs(diff)===1?"":"en"}`;
+  if(diff===0) return "heute fällig";
+  return `fällig in ${diff} Tag${diff===1?"":"en"}`;
 }
 
 function dueDateTimeDE(value){
@@ -495,6 +512,7 @@ window.openVehicleDueList=type=>{
             <div class="due-meta">
               ${Number(v.current_mileage||0).toLocaleString("de-DE")} km · Fahrer: ${esc(driver)}<br>
               <strong>${isUvv?"UVV-Termin":"Service-Termin"}:</strong> ${esc(dueDateTimeDE(v[field]))}<br>
+              <strong>Frist:</strong> ${esc(dueStatusText(v[field]))}<br>
               <strong>${isUvv?"Prüfstelle / Ansprechpartner":"Werkstatt"}:</strong> ${esc(contact||"Nicht hinterlegt")}
             </div>
             ${phone?`<a class="due-phone" href="tel:${esc(phoneHref(phone))}">☎ ${esc(phone)}</a>`:'<div class="absence-reason">Keine Telefonnummer hinterlegt.</div>'}
