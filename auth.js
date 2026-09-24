@@ -1,5 +1,25 @@
 let rmAuthClientPromise;
 
+function ensureRmFaqLink() {
+  const navs = document.querySelectorAll('.nav, .nav-links');
+  navs.forEach((nav) => {
+    if (nav.querySelector('a[href="/faq.html"], a[href="faq.html"]')) return;
+    const faq = document.createElement('a');
+    faq.href = '/faq.html';
+    faq.textContent = 'FAQ';
+    if (location.pathname === '/faq.html') faq.classList.add('active');
+    const authLink = nav.querySelector('#authLink');
+    if (authLink) nav.insertBefore(faq, authLink);
+    else nav.appendChild(faq);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', ensureRmFaqLink);
+} else {
+  ensureRmFaqLink();
+}
+
 async function getRmAuthClient() {
   if (!rmAuthClientPromise) {
     rmAuthClientPromise = (async () => {
