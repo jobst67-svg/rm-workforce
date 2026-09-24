@@ -13,7 +13,7 @@
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(circle at 50% 0,#161616 0,#090909 52%,#000 100%);color:#fff;line-height:1.65}
 .page{min-height:100vh;display:flex;flex-direction:column}.wrap{width:min(1080px,94vw);margin:0 auto;padding:20px 18px 48px}
 .topbar{display:flex;align-items:center;gap:24px;margin-bottom:28px}.brand img{display:block;width:118px;height:74px;object-fit:contain}
-.nav{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;background:#151515;border:1px solid #3c3c3c;color:#eee;text-decoration:none;font-weight:750}.nav a:hover{border-color:#1ba7e1;color:#61c9f2}
+.nav{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;background:#151515;border:1px solid #3c3c3c;color:#eee;text-decoration:none;font-weight:750}.nav a:hover{border-color:#1ba7e1;color:#61c9f2}.menu-toggle{display:none;align-items:center;justify-content:center;width:48px;height:44px;padding:0;border-radius:12px;border:1px solid #3c3c3c;background:#151515;color:#fff;font-size:26px;line-height:1;cursor:pointer}
 .hero{background:linear-gradient(135deg,#0d1b2a,#0c1420);border:1px solid #1f4a6a;border-radius:26px;padding:30px;margin-bottom:22px}
 .eyebrow{color:#61c9f2;font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.82rem}.hero h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:.25em 0}.hero p{max-width:860px;color:#c9d6df;font-size:1.08rem}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border-radius:14px;text-decoration:none;font-weight:850;border:1px solid transparent}.btn-primary{background:linear-gradient(135deg,#173e6b,#159dd0);color:#fff}.btn-secondary{background:#151515;border-color:#3a5c72;color:#d9eff8}
@@ -26,7 +26,7 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial
 .honey{position:absolute;left:-10000px;opacity:0}.submit{margin-top:16px;border:0;cursor:pointer}.status{margin-top:12px;min-height:24px;font-weight:700}.status.ok{color:#71df9b}.status.err{color:#ff8a8a}
 .footer{margin-top:auto;padding:28px 16px;text-align:center;font-size:14px}.footer a{color:#9bb4c7;text-decoration:none}.footer span{margin:0 10px;color:#6f7d88}
 @media(max-width:760px){.topbar{align-items:flex-start;gap:12px}.brand img{width:88px;height:58px}.nav{gap:8px}.nav a{padding:0 12px;min-height:40px;font-size:.92rem}.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
-@media(max-width:520px){.topbar{flex-direction:column}.nav{margin-left:0;justify-content:flex-start}.brand img{width:110px}.flow{grid-template-columns:1fr}}
+@media(max-width:520px){.topbar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}.brand img{width:110px}.menu-toggle{display:inline-flex}.nav{display:none;grid-column:1/-1;margin-left:0;width:100%;flex-direction:column;justify-content:flex-start;padding-top:6px}.nav.open{display:flex}.nav a{width:100%;justify-content:flex-start}.flow{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -34,7 +34,7 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial
 <div class="wrap">
 <header class="topbar">
 <a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="Real Mobile Workforce"></a>
-<nav class="nav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a></nav>
+<button class="menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">☰</button><nav class="nav" id="mobileNav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a></nav>
 </header>
 
 <section class="hero">
@@ -140,6 +140,12 @@ form.addEventListener('submit',async e=>{
  }catch(err){statusEl.className='status err';statusEl.textContent=err.message||'Die Anfrage konnte nicht gesendet werden.'}
  finally{btn.disabled=false}
 });
+
+const menuBtn=document.querySelector('.menu-toggle'),mobileNav=document.getElementById('mobileNav');
+if(menuBtn&&mobileNav){
+ menuBtn.addEventListener('click',()=>{const open=mobileNav.classList.toggle('open');menuBtn.setAttribute('aria-expanded',open?'true':'false');menuBtn.setAttribute('aria-label',open?'Menü schließen':'Menü öffnen');menuBtn.textContent=open?'✕':'☰';});
+ mobileNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{mobileNav.classList.remove('open');menuBtn.setAttribute('aria-expanded','false');menuBtn.setAttribute('aria-label','Menü öffnen');menuBtn.textContent='☰';}));
+}
 </script>
 </body>
 </html>
