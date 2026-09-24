@@ -7,28 +7,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>RM Workforce – QR-Code</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}body{min-height:100dvh;display:grid;place-items:center}.screen{width:min(94vw,760px);min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 18px 34px;text-align:center}.logo{width:min(240px,48vw);height:auto;margin:0 0 18px}.title{font-size:clamp(1.4rem,5vw,2rem);font-weight:900;margin:0 0 6px}.sub{font-size:clamp(1rem,3.8vw,1.2rem);margin:0 0 20px;color:#444}.qr-wrap{width:min(82vw,560px);aspect-ratio:1;background:#fff;padding:12px}.qr{display:block;width:100%;height:100%;image-rendering:pixelated}.hint{font-weight:800;font-size:clamp(1rem,4vw,1.25rem);margin:18px 0 0}.url{font-size:.9rem;color:#666;margin-top:5px}@media(max-height:700px){.screen{padding:10px 16px}.logo{width:150px;margin-bottom:6px}.title{font-size:1.25rem}.sub{margin-bottom:8px}.qr-wrap{width:min(68vh,72vw)}.hint{margin-top:8px}}
-</style>
+<link rel="icon" type="image/svg+xml" href="/qr-icon.svg">
+<link rel="apple-touch-icon" href="/qr-icon.svg">
+<title>QR-Code</title>
+<style>*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;background:#fff;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}body{min-height:100dvh;display:grid;place-items:center}.screen{width:min(94vw,760px);min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 18px 34px;text-align:center}.logo{width:min(240px,48vw);height:auto;margin:0 0 18px}.title{font-size:clamp(1.4rem,5vw,2rem);font-weight:900;margin:0 0 6px}.sub{font-size:clamp(1rem,3.8vw,1.2rem);margin:0 0 20px;color:#444}.qr-wrap{width:min(82vw,560px);aspect-ratio:1;background:#fff;padding:12px}.qr{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.hint{font-weight:800;font-size:clamp(1rem,4vw,1.25rem);margin:18px 0 0}.url{font-size:.9rem;color:#666;margin-top:5px}@media(max-height:700px){.screen{padding:10px 16px}.logo{width:150px;margin-bottom:6px}.title{font-size:1.25rem}.sub{margin-bottom:8px}.qr-wrap{width:min(68vh,72vw)}.hint{margin-top:8px}}</style>
 </head>
-<body>
-<main class="screen">
-<img class="logo" src="/rmw-logo-hq.webp" alt="Real Mobile Workforce">
-<h1 class="title">FAQ – Strom &amp; modernes Messwesen</h1>
-<p class="sub">Einfach mit dem Smartphone scannen</p>
-<div class="qr-wrap"><svg class="qr" id="qr" viewBox="0 0 29 29" role="img" aria-label="QR-Code zu rm-workforce.de/faq.html"></svg></div>
-<p class="hint">Kamera öffnen · QR-Code scannen · FAQ ansehen</p>
-<div class="url">rm-workforce.de/faq.html</div>
-</main>
-<script>
-/* Statischer QR-Code. Die Zieladresse steht direkt im Code; kein externer QR-Dienst und kein Ablaufdatum. */
-const matrix=[
-'11111110110100101110111111111','10000010110110101000100000001','10111010110100101010101110101','10111010001011101010101110101','10111010110000011010101110101','10000010101010101000100000001','11111110101010101010111111111','00000000101110101010000000000','10110111101011101111111010101','00100000111000111000010010100','11101110100101001101101111101','01000100110101010010101000001','10111011101011101111101110111','00000100010101000010001010100','11110110101110111011111110101','10001001100001000100010000101','10111110110101101110101111111','00000000101011001000101000100','11111110101011101110101010111','10000010011000101000101000101','10111010101110101111101111101','10111010010001000000100010001','10111010110111101110111110111','10000010100010001010100010100','11111110111111101110101110111'];
-const svg=document.getElementById('qr'),ns='http://www.w3.org/2000/svg';
-// Fallback: generate from encoded SVG path below only if the matrix is valid. We use a browser-side QR library-free image via inline data generated from the known static target.
-svg.setAttribute('viewBox','0 0 25 25');
-matrix.forEach((row,y)=>[...row].forEach((v,x)=>{if(v==='1'){const r=document.createElementNS(ns,'rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',1);r.setAttribute('height',1);r.setAttribute('fill','#000');svg.appendChild(r)}}));
-</script>
-</body>
-</html>
+<body><main class="screen"><img class="logo" src="/rmw-logo-hq.webp" alt="Real Mobile Workforce"><h1 class="title">FAQ – Strom &amp; modernes Messwesen</h1><p class="sub">Einfach mit dem Smartphone scannen</p><div class="qr-wrap"><img class="qr" src="/qr-icon.svg" alt="QR-Code zu rm-workforce.de/faq.html"></div><p class="hint">Kamera öffnen · QR-Code scannen · FAQ ansehen</p><div class="url">rm-workforce.de/faq.html</div></main></body></html>
