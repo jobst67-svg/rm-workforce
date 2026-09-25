@@ -1,50 +1,24 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
+    {"source":"/assets/techniker-tablet.webp","destination":"/1000198782-hq.jpg"},
+    {"source":"/assets/zeitersparnis.webp","destination":"/1000198784-hq.jpg"},
+    {"source":"/assets/fuhrpark-team.webp","destination":"/1000198786-hq.jpg"},
+    {"source":"/assets/buero-dashboard.webp","destination":"/1000198789-hq.jpg"},
     {
       "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "host",
-          "value": "elko.rm-workforce.de"
-        }
-      ],
+      "has": [{"type":"header","key":"host","value":"elko.rm-workforce.de"}],
       "destination": "/elko.html"
     }
   ],
   "headers": [
-    {
-      "source": "/register.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/zaehlerbuch.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/datenschutz.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/datenschutz-zaehlerbuch.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/agb.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/impressum.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/email-abmelden.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, follow"}]
-    },
-    {
-      "source": "/elko.html",
-      "headers": [{"key":"X-Robots-Tag","value":"noindex, nofollow"}]
-    }
+    {"source":"/register.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/zaehlerbuch.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/datenschutz.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/datenschutz-zaehlerbuch.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/agb.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/impressum.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/email-abmelden.html","headers":[{"key":"X-Robots-Tag","value":"noindex, follow"}]},
+    {"source":"/elko.html","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]}
   ]
 }
