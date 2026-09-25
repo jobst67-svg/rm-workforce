@@ -25,7 +25,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:0}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:23px;box-shadow:0 8px 28px rgba(18,45,63,.04)}.card h2,.card h3{margin-top:0}.card h3{color:var(--ink);font-size:1.18rem}.card p,.card li{color:var(--muted)}.card ul{padding-left:20px;margin-bottom:0}
 .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.step{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;font-weight:750;color:#355065}.step b{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:#eaf5f8;color:var(--brand);margin:0 auto 8px}
 .table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}.table th,.table td{padding:14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.table th{color:var(--ink);background:var(--soft)}.table td{color:var(--muted)}.table tr:last-child td{border-bottom:0}
-.notice{background:#eef7fa;border-left:4px solid var(--brand2);border-radius:12px;padding:16px 18px;color:#355065;margin-top:18px}
+.visual{margin-top:34px;border:1px solid var(--line);border-radius:24px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}.visual img{display:block;width:100%;height:auto}.visual-caption{padding:14px 18px;color:var(--muted);font-size:.92rem}.notice{background:#eef7fa;border-left:4px solid var(--brand2);border-radius:12px;padding:16px 18px;color:#355065;margin-top:18px}
 .form-card{background:linear-gradient(135deg,#f8fbfc,#eef5f8);border:1px solid var(--line);border-radius:24px;padding:28px;margin-top:72px;box-shadow:var(--shadow)}.form-card h2{margin:0 0 6px;font-size:clamp(1.8rem,3vw,2.5rem)}.form-card>p{color:var(--muted);margin-top:0}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-weight:750;color:var(--ink)}.field input,.field textarea{width:100%;border:1px solid #cfdce4;border-radius:12px;background:#fff;color:var(--ink);padding:13px 14px;font:inherit;outline:none}.field textarea{min-height:130px;resize:vertical}.field input:focus,.field textarea:focus{border-color:var(--brand2);box-shadow:0 0 0 3px rgba(23,137,168,.12)}
 .honey{position:absolute;left:-10000px;opacity:0}.submit{margin-top:16px;cursor:pointer}.submit:disabled{opacity:.65;cursor:wait}.status{margin-top:12px;min-height:24px;font-weight:700}.status.ok{color:#22785d}.status.err{color:#b42318}
@@ -49,6 +49,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
 <p>Durchgängige Lösung aus Android-App, zentraler Bürooberfläche und Cloud-Datenhaltung. Fahrer, Fahrzeuge, Tagestouren, Termine, Unfallakten und Auswertungen werden in einem System zusammengeführt.</p>
 <div class="actions"><a class="btn btn-primary" href="#anfrage">Projekt anfragen</a><a class="btn btn-secondary" href="#technik">Technische Dokumentation</a></div>
 </section>
+<div class="visual"><img src="/assets/fuhrpark.svg" alt="Digital verwalteter RM Workforce Fuhrpark mit Tablet"><div class="visual-caption">Fahrzeugstatus, Fahrer und Termine werden unterwegs erfasst und stehen zentral zur Verfügung.</div></div>
 
 <section id="technik" class="section">
 <h2>Funktionsumfang</h2>
@@ -92,6 +93,10 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
 <article class="card"><h3>Keine permanente GPS-Überwachung</h3><p>Das System ist auf betriebliche Dokumentation ausgelegt. Eine dauerhafte Standortüberwachung der Mitarbeiter ist für die Fahrtenbuch- und Fuhrparkfunktionen nicht erforderlich.</p></article>
 <article class="card"><h3>Individuelle Bereitstellung</h3><p>Die Lösung kann als kundenspezifisches System mit eigenem Branding, eigenen Fahrzeugarten, individuellen Pflichtfeldern und angepassten Auswertungen bereitgestellt werden.</p></article>
 </div>
+</section>
+
+<section class="section">
+<h2>Im Büro sofort den Überblick</h2><div class="visual"><img src="/assets/buero-dashboard.svg" alt="Büroarbeitsplatz mit RM Workforce Fuhrpark-Dashboard"><div class="visual-caption">Fuhrparkstatus, fällige Termine und laufende Aufgaben auf einer zentralen Oberfläche.</div></div>
 </section>
 
 <section class="section">
