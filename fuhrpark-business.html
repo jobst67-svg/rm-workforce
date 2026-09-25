@@ -15,7 +15,7 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
 .page{min-height:100vh;display:flex;flex-direction:column}.wrap{width:min(1120px,92vw);margin:0 auto;padding:0 0 64px}
 .topbar{height:76px;display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);margin:0 calc((92vw - min(1120px,92vw))/-2) 0;padding:0 max(4vw,calc((100vw - 1120px)/2))}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:900;color:var(--ink)}.brand img{display:block;width:58px;height:46px;object-fit:contain}.brand::after{content:"RM Workforce";font-weight:900;white-space:nowrap}
-.nav{margin-left:auto;display:flex;align-items:center;gap:22px;flex-wrap:wrap}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0;text-decoration:none;font-weight:750;color:#2b4457}.nav a:hover{color:var(--brand)}
+.nav{margin-left:auto;display:flex;align-items:center;gap:22px;flex-wrap:wrap}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0;text-decoration:none;font-weight:750;color:#2b4457}.nav a:hover{color:var(--brand)}.nav .cta{min-height:42px;padding:0 14px;border-radius:12px;background:var(--ink);color:#fff}.nav .cta:hover{color:#fff;opacity:.92}
 .menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:24px;cursor:pointer}
 .hero{margin:0 calc((92vw - min(1120px,92vw))/-2);padding:78px max(4vw,calc((100vw - 1120px)/2)) 60px;background:radial-gradient(circle at 90% 10%,rgba(23,137,168,.12),transparent 30%),linear-gradient(180deg,#fbfdfe,#fff);border:0;border-radius:0}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#eaf5f8;color:var(--brand);font-weight:850;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem}.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
@@ -40,7 +40,14 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,
 <header class="topbar">
 <a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="RM Workforce"></a>
 <button class="menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">☰</button>
-<nav class="nav" id="mobileNav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a><a href="/ueber-uns.html">Über uns</a></nav>
+<nav class="nav" id="mobileNav">
+<a href="/">Startseite</a>
+<a href="/privatkunden.html">Privatkunden</a>
+<a href="/geschaeftskunden.html">Geschäftskunden</a>
+<a href="/workforce-business.html#technik">Dokumentation</a>
+<a href="/ueber-uns.html">Über uns</a>
+<a class="cta" href="/geschaeftskunden.html">Projekt anfragen</a>
+</nav>
 </header>
 
 <section class="hero">
