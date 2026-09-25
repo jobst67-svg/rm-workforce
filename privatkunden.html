@@ -21,21 +21,22 @@ footer{padding:30px 0;color:#66798a;font-size:.9rem}.footer-row{display:flex;jus
 @media(max-width:940px){.hero-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.navlinks{position:absolute;display:none;top:76px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);padding:16px 4vw;flex-direction:column;align-items:stretch;gap:6px}.navlinks.open{display:flex}.navlinks a{padding:11px 8px}.navlinks .login,.navlinks .cta{text-align:center}.menu{display:block}}
 @media(max-width:640px){.container{width:min(94vw,1180px)}.hero{padding:50px 0 46px}.grid,.info-grid{grid-template-columns:1fr}.hero-actions,.modal-actions{display:grid}.btn{width:100%}.brand-copy small{display:none}}
 </style>
+<link rel="stylesheet" href="/site-nav.css">
 </head>
 <body>
-<header>
-<div class="container navbar">
-<a class="brand" href="/"><img src="/rmw-logo-hq.webp" alt="RM Workforce"><span class="brand-copy">RM Workforce<small>Für Privatkunden</small></span></a>
-<button class="menu" type="button" aria-label="Menü öffnen" aria-expanded="false">☰</button>
-<nav class="navlinks" id="navlinks">
-<a href="/">Startseite</a>
-<a class="active" href="/privatkunden.html">Privatkunden</a>
-<a href="/geschaeftskunden.html">Geschäftskunden</a>
-<a href="/workforce-business.html#technik">Dokumentation</a>
-<a href="/ueber-uns.html">Über uns</a>
-<a class="cta" href="/workforce-business.html#anfrage">Projekt anfragen</a>
-</nav>
-</div>
+<header class="rmw-header">
+  <div class="rmw-header-inner">
+    <a class="rmw-brand" href="/"><img src="/rmw-logo-hq.webp" alt=""><span>RM Workforce</span></a>
+    <button class="rmw-menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="rmw-site-links">☰</button>
+    <nav class="rmw-nav" id="rmw-site-links" aria-label="Hauptnavigation">
+      <a href="/">Startseite</a>
+      <a href="/privatkunden.html">Privatkunden</a>
+      <a href="/geschaeftskunden.html">Geschäftskunden</a>
+      <a href="/workforce-business.html#technik">Dokumentation</a>
+      <a href="/ueber-uns.html">Über uns</a>
+      <a class="rmw-request" href="/workforce-business.html#anfrage">Projekt anfragen</a>
+    </nav>
+  </div>
 </header>
 
 <main>
@@ -99,5 +100,6 @@ nav?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classL
 <script>
 (async()=>{try{const u=await getRmUser();if(u){const z=document.getElementById("zaehlerbuchBtn");if(z)z.href="/zaehlerbuch.html"}}catch(e){console.error(e)}})();
 </script>
+<script src="/site-nav.js" defer></script>
 </body>
 </html>

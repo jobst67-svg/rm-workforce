@@ -14,11 +14,25 @@
 .footer{margin-top:auto;padding:28px 16px;text-align:center;font-size:14px;color:#66798a;border-top:1px solid var(--line)}.footer a{color:#66798a;text-decoration:none}.footer span{margin:0 10px;color:#a7b4bf}
 @media(max-width:700px){.topbar{display:grid;grid-template-columns:1fr auto;gap:10px}.brand img{width:54px;height:44px}.nav{grid-column:1/-1;margin-left:0;gap:8px}.nav a{padding:8px 0}}
 .shell{width:min(980px,92vw)}.topbar{margin-bottom:28px}.wrap{width:min(590px,94vw);margin:10px auto 0;padding:0}.home{margin-left:auto}.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:clamp(22px,5vw,34px);box-shadow:var(--shadow)}h1{margin:0 0 10px;font-size:clamp(2rem,6vw,3rem);letter-spacing:-.035em}p{color:var(--muted)}label{display:block;margin:22px 0 7px;font-weight:750}input[type=email]{width:100%;min-height:52px;padding:0 14px;border-radius:12px;border:1px solid #cfdce4;background:#fff;color:var(--ink);font:inherit}button{width:100%;min-height:52px;margin-top:15px;border:0;border-radius:13px;background:var(--brand);color:#fff;font:inherit;font-weight:850;cursor:pointer}button:disabled{opacity:.65;cursor:wait}.msg{display:none;margin-top:18px;padding:13px 15px;border-radius:12px}.msg.show{display:block}.msg.ok{background:#eff8f3;border:1px solid #b9dfc8;color:#22785d}.msg.error{background:#fff2f0;border:1px solid #efc0ba;color:#a73327}.small{font-size:.92rem;color:var(--muted)}.hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}</style>
+<link rel="stylesheet" href="/site-nav.css">
 </head>
 <body>
   <main class="page">
     <div class="shell">
-      <header class="topbar"><a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="Real Mobile Workforce"></a><a class="home" href="/">Startseite</a></header>
+      <header class="rmw-header">
+  <div class="rmw-header-inner">
+    <a class="rmw-brand" href="/"><img src="/rmw-logo-hq.webp" alt=""><span>RM Workforce</span></a>
+    <button class="rmw-menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="rmw-site-links">☰</button>
+    <nav class="rmw-nav" id="rmw-site-links" aria-label="Hauptnavigation">
+      <a href="/">Startseite</a>
+      <a href="/privatkunden.html">Privatkunden</a>
+      <a href="/geschaeftskunden.html">Geschäftskunden</a>
+      <a href="/workforce-business.html#technik">Dokumentation</a>
+      <a href="/ueber-uns.html">Über uns</a>
+      <a class="rmw-request" href="/workforce-business.html#anfrage">Projekt anfragen</a>
+    </nav>
+  </div>
+</header>
       <div class="wrap">
         <section class="card">
           <h1>E-Mail-Updates abmelden</h1>
@@ -40,5 +54,6 @@
     const form=document.getElementById('unsubscribeForm');const email=document.getElementById('email');const website=document.getElementById('website');const message=document.getElementById('message');const button=document.getElementById('submitButton');const preset=new URLSearchParams(location.search).get('email');if(preset)email.value=preset;
     form.addEventListener('submit',async(event)=>{event.preventDefault();message.className='msg';if(!email.checkValidity()){message.textContent='Bitte gib eine gültige E-Mail-Adresse ein.';message.className='msg show error';email.focus();return}button.disabled=true;button.textContent='Abmeldung wird gespeichert …';try{const response=await fetch('/api/email-unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,website:website.value})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Die Abmeldung ist gerade nicht möglich.');message.textContent='Erledigt. Für diese E-Mail-Adresse werden keine freiwilligen RM-Workforce-Updates mehr versendet.';message.className='msg show ok';form.reset()}catch(error){message.textContent=error.message||'Die Abmeldung ist gerade nicht möglich. Bitte versuche es später erneut.';message.className='msg show error'}finally{button.disabled=false;button.textContent='Von E-Mail-Updates abmelden'}});
   </script>
+<script src="/site-nav.js" defer></script>
 </body>
 </html>

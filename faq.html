@@ -19,9 +19,23 @@
 
 .hero{background:radial-gradient(circle at 90% 10%,rgba(23,137,168,.11),transparent 30%),linear-gradient(180deg,#fbfdfe,#fff);border:1px solid var(--line);border-radius:26px;padding:30px;margin-bottom:24px}.eyebrow{color:var(--brand);font-weight:850;text-transform:uppercase;letter-spacing:.06em;font-size:.8rem}.hero h1{margin:7px 0 10px;font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.04;letter-spacing:-.04em}.hero p{margin:0;color:var(--muted);font-size:1.07rem;max-width:800px}.faq{display:grid;gap:14px}.faq details{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 6px 22px rgba(18,45,63,.035)}.faq details[open]{border-color:#b8d6e0}.faq summary{cursor:pointer;list-style:none;padding:20px 56px 20px 22px;font-weight:850;font-size:1.05rem;position:relative}.faq summary::-webkit-details-marker{display:none}.faq summary:after{content:'+';position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:1.55rem;color:var(--brand)}.faq details[open] summary:after{content:'–'}.answer{padding:0 22px 22px;color:var(--muted)}.answer strong{color:var(--ink)}.simple{margin:16px 0;padding:14px 16px;border-left:4px solid var(--brand2);background:#eef7fa;border-radius:0 12px 12px 0;color:#355065;font-weight:750}.note{margin-top:22px;color:var(--muted);font-size:.93rem}
 @media(max-width:700px){.hero{padding:22px}.faq summary{padding:18px 48px 18px 18px}.answer{padding:0 18px 19px}}</style>
+<link rel="stylesheet" href="/site-nav.css">
 </head>
 <body><main class="page"><div class="wrap">
-<header class="topbar"><a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="Real Mobile Workforce"></a><button class="menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">☰</button><nav class="nav" id="mobileNav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a><a class="active" href="/faq.html">FAQ</a></nav></header>
+<header class="rmw-header">
+  <div class="rmw-header-inner">
+    <a class="rmw-brand" href="/"><img src="/rmw-logo-hq.webp" alt=""><span>RM Workforce</span></a>
+    <button class="rmw-menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="rmw-site-links">☰</button>
+    <nav class="rmw-nav" id="rmw-site-links" aria-label="Hauptnavigation">
+      <a href="/">Startseite</a>
+      <a href="/privatkunden.html">Privatkunden</a>
+      <a href="/geschaeftskunden.html">Geschäftskunden</a>
+      <a href="/workforce-business.html#technik">Dokumentation</a>
+      <a href="/ueber-uns.html">Über uns</a>
+      <a class="rmw-request" href="/workforce-business.html#anfrage">Projekt anfragen</a>
+    </nav>
+  </div>
+</header>
 <section class="hero"><div class="eyebrow">Strom & Messwesen einfach erklärt</div><h1>FAQ zu Stromzählern & iMSys</h1><p>Warum werden Stromzähler digital? Was ist ein eHZ? Und was macht ein intelligentes Messsystem eigentlich intelligent? Hier erklären wir die Grundlagen verständlich und ohne unnötiges Fachchinesisch.</p></section>
 <section class="faq" aria-label="Häufige Fragen">
 <details><summary>Warum werden überhaupt elektronische Stromzähler eingesetzt?</summary><div class="answer"><p>Die Stromversorgung verändert sich. Früher floss Strom im Wesentlichen in eine Richtung: vom Kraftwerk zum Haushalt. Heute speisen zusätzlich Photovoltaikanlagen Strom ein, Elektroautos und Wärmepumpen erhöhen den Strombedarf und Strom wird immer häufiger dann genutzt, wenn er günstig oder besonders reichlich verfügbar ist.</p><p>Eine <strong>moderne Messeinrichtung</strong> ist ein digitaler Stromzähler. Sie misst den tatsächlichen Stromverbrauch elektronisch und kann neben dem aktuellen Zählerstand auch historische Verbrauchswerte bereitstellen. Anders als ein intelligentes Messsystem überträgt eine moderne Messeinrichtung ihre Daten nicht automatisch über ein Kommunikationsnetz.</p><p>Elektronische Zähler schaffen damit die technische Grundlage für eine genauere Verbrauchsdarstellung und für die weitere Digitalisierung des Messwesens.</p></div></details>
@@ -32,4 +46,5 @@
 <p class="note">Diese FAQ wird Schritt für Schritt erweitert – unter anderem um OBIS-Kennzahlen, den Aufbau von eHZ und BKE, dynamische Stromtarife, Photovoltaik, Wärmepumpen, Wallboxen und Datenschutz.</p>
 </div><footer class="footer"><a href="/datenschutz.html">Datenschutz</a><span>·</span><a href="/agb.html">AGB</a><span>·</span><a href="/impressum.html">Impressum</a></footer></main>
 <script>const b=document.querySelector('.menu-toggle'),n=document.getElementById('mobileNav');if(b&&n){b.addEventListener('click',()=>{const o=n.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');b.setAttribute('aria-label',o?'Menü schließen':'Menü öffnen');b.textContent=o?'✕':'☰'});n.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{n.classList.remove('open');b.setAttribute('aria-expanded','false');b.textContent='☰'}))}</script>
+<script src="/site-nav.js" defer></script>
 </body></html>

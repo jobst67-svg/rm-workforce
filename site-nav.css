@@ -1,0 +1,20 @@
+.rmw-header{position:sticky;top:0;z-index:80;width:100%;min-height:72px;margin:0 0 24px;background:rgba(255,255,255,.97);border-bottom:1px solid #e4ebef;backdrop-filter:blur(12px)}
+.rmw-header-inner{width:min(1180px,92vw);min-height:72px;margin:0 auto;display:flex;align-items:center;gap:24px}
+.wrap > .rmw-header .rmw-header-inner,.shell > .rmw-header .rmw-header-inner{width:100%;padding:0 6px}
+.rmw-brand{display:inline-flex;align-items:center;gap:10px;flex:0 0 auto;color:#122337;text-decoration:none;font-size:16px;font-weight:850;white-space:nowrap}
+.rmw-brand img{display:block;width:58px;height:48px;object-fit:contain}
+.rmw-nav{display:flex;align-items:center;justify-content:flex-end;gap:22px;margin-left:auto}
+.rmw-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0;color:#294157;text-decoration:none;font-size:15px;font-weight:750;white-space:nowrap}
+.rmw-nav a:hover,.rmw-nav a:focus-visible{color:#0d6784}
+.rmw-nav .rmw-request{min-height:44px;padding:0 16px;border-radius:12px;background:#101f2f;color:#fff;font-weight:800}
+.rmw-nav .rmw-request:hover,.rmw-nav .rmw-request:focus-visible{background:#0d6784;color:#fff}
+.rmw-menu-toggle{display:none;margin-left:auto;width:44px;height:44px;padding:0;border:1px solid #dce5ec;border-radius:12px;background:#fff;color:#122337;font-size:24px;line-height:1;cursor:pointer}
+@media(max-width:1030px){
+  .rmw-header-inner{position:relative;width:min(1180px,92vw)}
+  .rmw-menu-toggle{display:inline-grid;place-items:center}
+  .rmw-nav{display:none;position:absolute;top:calc(100% - 1px);left:0;right:0;z-index:81;margin:0;padding:12px;background:#fff;border:1px solid #dce5ec;border-radius:0 0 16px 16px;box-shadow:0 16px 30px rgba(18,45,63,.12);flex-direction:column;align-items:stretch;gap:2px}
+  .rmw-nav.is-open{display:flex}
+  .rmw-nav a{justify-content:flex-start;min-height:46px;padding:0 12px}
+  .rmw-nav .rmw-request{justify-content:center;margin-top:6px}
+}
+@media(max-width:420px){.rmw-header-inner{width:94vw}.rmw-brand{font-size:15px}.rmw-brand img{width:52px;height:44px}}
