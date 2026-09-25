@@ -106,7 +106,7 @@ footer{padding:30px 0;color:#66798a;font-size:.9rem}.footer-row{display:flex;jus
 const menu=document.querySelector('.menu'),nav=document.getElementById('navlinks');
 menu?.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open));menu.textContent=open?'✕':'☰'});
 nav?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');menu.setAttribute('aria-expanded','false');menu.textContent='☰'}));
-(async()=>{try{const u=await getRmUser();if(u){const a=document.getElementById('authLink');a.textContent='Abmelden';a.href='#';a.onclick=()=>{rmLogout();return false}}}catch(e){console.error(e)}})();
+(async()=>{try{await getRmUser()}catch(e){console.error(e)}})();
 </script>
 </body>
 </html>
