@@ -1,10 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {"source":"/assets/techniker-tablet.webp","destination":"/1000198782-hq.jpg","permanent":false},
+    {"source":"/assets/zeitersparnis.webp","destination":"/1000198784-hq.jpg","permanent":false},
+    {"source":"/assets/fuhrpark-team.webp","destination":"/1000198786-hq.jpg","permanent":false},
+    {"source":"/assets/buero-dashboard.webp","destination":"/1000198789-hq.jpg","permanent":false}
+  ],
   "rewrites": [
-    {"source":"/assets/techniker-tablet.webp","destination":"/1000198782-hq.jpg"},
-    {"source":"/assets/zeitersparnis.webp","destination":"/1000198784-hq.jpg"},
-    {"source":"/assets/fuhrpark-team.webp","destination":"/1000198786-hq.jpg"},
-    {"source":"/assets/buero-dashboard.webp","destination":"/1000198789-hq.jpg"},
     {
       "source": "/",
       "has": [{"type":"header","key":"host","value":"elko.rm-workforce.de"}],
