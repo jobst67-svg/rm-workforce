@@ -7,34 +7,40 @@
 <meta name="description" content="Individuelle Android- und Weblösung für Fuhrparks: digitales Fahrtenbuch, Fahrer- und Fahrzeugverwaltung, UVV, Service, TÜV/HU, Unfallakten, PDF- und Excel-Auswertung.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="https://rm-workforce.de/fuhrpark-business.html">
-<meta name="theme-color" content="#0b0b0b">
+<meta name="theme-color" content="#ffffff">
 <style>
+:root{--ink:#0f1f2f;--muted:#607181;--line:#dce6ec;--soft:#f5f8fa;--soft2:#edf4f7;--brand:#0d6784;--brand2:#1789a8;--accent:#2a9d78;--white:#fff;--shadow:0 18px 50px rgba(18,45,63,.08)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}html,body{margin:0;min-height:100%}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(circle at 50% 0,#161616 0,#090909 52%,#000 100%);color:#fff;line-height:1.65}
-.page{min-height:100vh;display:flex;flex-direction:column}.wrap{width:min(1080px,94vw);margin:0 auto;padding:20px 18px 48px}
-.topbar{display:flex;align-items:center;gap:24px;margin-bottom:28px}.brand img{display:block;width:118px;height:74px;object-fit:contain}
-.nav{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;background:#151515;border:1px solid #3c3c3c;color:#eee;text-decoration:none;font-weight:750}.nav a:hover{border-color:#1ba7e1;color:#61c9f2}.menu-toggle{display:none;align-items:center;justify-content:center;width:48px;height:44px;padding:0;border-radius:12px;border:1px solid #3c3c3c;background:#151515;color:#fff;font-size:26px;line-height:1;cursor:pointer}
-.hero{background:linear-gradient(135deg,#0d1b2a,#0c1420);border:1px solid #1f4a6a;border-radius:26px;padding:30px;margin-bottom:22px}
-.eyebrow{color:#61c9f2;font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.82rem}.hero h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:.25em 0}.hero p{max-width:900px;color:#c9d6df;font-size:1.08rem}
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border-radius:14px;text-decoration:none;font-weight:850;border:1px solid transparent}.btn-primary{background:linear-gradient(135deg,#173e6b,#159dd0);color:#fff}.btn-secondary{background:#151515;border-color:#3a5c72;color:#d9eff8}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0}.card{background:#0d1b2a;border:1px solid #18314d;border-radius:20px;padding:22px}.card h2,.card h3{margin-top:0}.card h3{color:#70c9ef}.card p,.card li{color:#c9d4dc}.card ul{padding-left:20px;margin-bottom:0}
-.section{margin-top:28px}.section>h2{font-size:1.7rem;margin-bottom:12px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.step{background:#101820;border:1px solid #294257;border-radius:16px;padding:16px;text-align:center;font-weight:750;color:#dfe9ef}.step b{display:block;color:#61c9f2;margin-bottom:4px}
-.table{width:100%;border-collapse:collapse;background:#0d1b2a;border:1px solid #18314d;border-radius:18px;overflow:hidden}.table th,.table td{padding:13px 14px;border-bottom:1px solid #18314d;text-align:left;vertical-align:top}.table th{color:#8ed8f4;background:#10243a}.table td{color:#d2dde4}.table tr:last-child td{border-bottom:0}
-.notice{background:#151a20;border-left:4px solid #159dd0;border-radius:12px;padding:16px 18px;color:#d5e2ea;margin-top:18px}
-.form-card{background:linear-gradient(135deg,#10243a,#0d1b2a);border:1px solid #24557a;border-radius:24px;padding:26px;margin-top:34px}.form-card h2{margin:0 0 6px}.form-card>p{color:#c7d7e2;margin-top:0}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-weight:750;color:#e9f4fa}.field input,.field textarea{width:100%;border:1px solid #3b586c;border-radius:12px;background:#0b1117;color:#fff;padding:13px 14px;font:inherit;outline:none}.field textarea{min-height:130px;resize:vertical}.field input:focus,.field textarea:focus{border-color:#38b7ea;box-shadow:0 0 0 3px rgba(56,183,234,.14)}
-.honey{position:absolute;left:-10000px;opacity:0}.submit{margin-top:16px;border:0;cursor:pointer}.status{margin-top:12px;min-height:24px;font-weight:700}.status.ok{color:#71df9b}.status.err{color:#ff8a8a}
-.footer{margin-top:auto;padding:28px 16px;text-align:center;font-size:14px}.footer a{color:#9bb4c7;text-decoration:none}.footer span{margin:0 10px;color:#6f7d88}
-@media(max-width:760px){.topbar{align-items:flex-start;gap:12px}.brand img{width:88px;height:58px}.nav{gap:8px}.nav a{padding:0 12px;min-height:40px;font-size:.92rem}.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
-@media(max-width:520px){.topbar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}.brand img{width:110px}.menu-toggle{display:inline-flex}.nav{display:none;grid-column:1/-1;margin-left:0;width:100%;flex-direction:column;justify-content:flex-start;padding-top:6px}.nav.open{display:flex}.nav a{width:100%;justify-content:flex-start}.flow{grid-template-columns:1fr}}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.6}
+.page{min-height:100vh;display:flex;flex-direction:column}.wrap{width:min(1120px,92vw);margin:0 auto;padding:0 0 64px}
+.topbar{height:76px;display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);margin:0 calc((92vw - min(1120px,92vw))/-2) 0;padding:0 max(4vw,calc((100vw - 1120px)/2))}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:900;color:var(--ink)}.brand img{display:block;width:58px;height:46px;object-fit:contain}.brand::after{content:"RM Workforce";font-weight:900;white-space:nowrap}
+.nav{margin-left:auto;display:flex;align-items:center;gap:22px;flex-wrap:wrap}.nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0;text-decoration:none;font-weight:750;color:#2b4457}.nav a:hover{color:var(--brand)}
+.menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:24px;cursor:pointer}
+.hero{margin:0 calc((92vw - min(1120px,92vw))/-2);padding:78px max(4vw,calc((100vw - 1120px)/2)) 60px;background:radial-gradient(circle at 90% 10%,rgba(23,137,168,.12),transparent 30%),linear-gradient(180deg,#fbfdfe,#fff);border:0;border-radius:0}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#eaf5f8;color:var(--brand);font-weight:850;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem}.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.hero h1{font-size:clamp(2.5rem,5vw,4.6rem);line-height:.99;letter-spacing:-.05em;margin:20px 0 18px;max-width:900px}.hero p{max-width:860px;color:var(--muted);font-size:1.12rem;margin:0}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 20px;border-radius:13px;text-decoration:none;font-weight:850;border:1px solid var(--line);transition:.18s ease;font:inherit}.btn:hover{transform:translateY(-1px)}.btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn-secondary{background:#fff;color:var(--ink)}
+.section{margin-top:0;padding-top:72px}.section>h2{font-size:clamp(1.9rem,3.3vw,2.8rem);line-height:1.08;letter-spacing:-.035em;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:0}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:23px;box-shadow:0 8px 28px rgba(18,45,63,.04)}.card h2,.card h3{margin-top:0}.card h3{color:var(--ink);font-size:1.18rem}.card p,.card li{color:var(--muted)}.card ul{padding-left:20px;margin-bottom:0}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.step{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;font-weight:750;color:#355065}.step b{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:#eaf5f8;color:var(--brand);margin:0 auto 8px}
+.table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}.table th,.table td{padding:14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.table th{color:var(--ink);background:var(--soft)}.table td{color:var(--muted)}.table tr:last-child td{border-bottom:0}
+.notice{background:#eef7fa;border-left:4px solid var(--brand2);border-radius:12px;padding:16px 18px;color:#355065;margin-top:18px}
+.form-card{background:linear-gradient(135deg,#f8fbfc,#eef5f8);border:1px solid var(--line);border-radius:24px;padding:28px;margin-top:72px;box-shadow:var(--shadow)}.form-card h2{margin:0 0 6px;font-size:clamp(1.8rem,3vw,2.5rem)}.form-card>p{color:var(--muted);margin-top:0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-weight:750;color:var(--ink)}.field input,.field textarea{width:100%;border:1px solid #cfdce4;border-radius:12px;background:#fff;color:var(--ink);padding:13px 14px;font:inherit;outline:none}.field textarea{min-height:130px;resize:vertical}.field input:focus,.field textarea:focus{border-color:var(--brand2);box-shadow:0 0 0 3px rgba(23,137,168,.12)}
+.honey{position:absolute;left:-10000px;opacity:0}.submit{margin-top:16px;cursor:pointer}.submit:disabled{opacity:.65;cursor:wait}.status{margin-top:12px;min-height:24px;font-weight:700}.status.ok{color:#22785d}.status.err{color:#b42318}
+.footer{margin-top:auto;padding:30px 16px;text-align:center;font-size:14px;color:#66798a;border-top:1px solid var(--line)}.footer a{color:#66798a;text-decoration:none}.footer span{margin:0 10px;color:#a7b4bf}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.nav{position:absolute;display:none;top:76px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);padding:16px 4vw;flex-direction:column;align-items:stretch;gap:6px}.nav.open{display:flex}.nav a{justify-content:flex-start;padding:10px 6px}.menu-toggle{display:inline-flex;margin-left:auto}}
+@media(max-width:640px){.wrap{width:min(94vw,1120px)}.topbar{padding:0 3vw;margin:0 calc((94vw - min(1120px,94vw))/-2)}.brand::after{font-size:.95rem}.hero{padding:50px 3vw 46px;margin:0 calc((94vw - min(1120px,94vw))/-2)}.flow{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.actions{display:grid}.btn{width:100%}.section{padding-top:56px}.table{display:block;overflow-x:auto}}
 </style>
 </head>
 <body>
 <main class="page">
 <div class="wrap">
 <header class="topbar">
-<a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="Real Mobile Workforce"></a>
-<button class="menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">☰</button><nav class="nav" id="mobileNav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a></nav>
+<a class="brand" href="/" aria-label="Startseite"><img src="/rmw-logo-hq.webp" alt="RM Workforce"></a>
+<button class="menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobileNav">☰</button>
+<nav class="nav" id="mobileNav"><a href="/">Startseite</a><a href="/privatkunden.html">Privatkunden</a><a href="/geschaeftskunden.html">Geschäftskunden</a><a href="/ueber-uns.html">Über uns</a></nav>
 </header>
 
 <section class="hero">
