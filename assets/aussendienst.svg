@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7f6fb"/><stop offset="1" stop-color="#f9fcfd"/></linearGradient><linearGradient id="b" x1="0" x2="1"><stop stop-color="#0d6784"/><stop offset="1" stop-color="#1789a8"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<text x="90" y="110" font-family="Arial" font-size="58" font-weight="900" fill="#0f1f2f">Digitale Dokumentation direkt vor Ort</text>
+<text x="90" y="162" font-family="Arial" font-size="26" fill="#607181">Auftrag, Fotos, Messwerte und Bericht in einem mobilen Ablauf.</text>
+<rect x="80" y="240" width="640" height="480" rx="32" fill="#fff" stroke="#dce6ec" stroke-width="3"/>
+<circle cx="260" cy="365" r="72" fill="#e0b08f"/><path d="M195 348Q210 260 270 280Q342 290 334 365Q285 325 195 348Z" fill="#18364a"/>
+<rect x="175" y="430" width="180" height="220" rx="70" fill="#15384b"/><rect x="165" y="450" width="200" height="150" rx="30" fill="#d9ef45"/><rect x="205" y="455" width="120" height="150" rx="20" fill="#15384b"/>
+<g transform="translate(360 390)"><rect width="300" height="210" rx="24" fill="#101820"/><rect x="16" y="16" width="268" height="178" rx="14" fill="#fff"/><rect x="36" y="36" width="92" height="28" rx="8" fill="url(#b)"/><rect x="36" y="84" width="205" height="18" rx="9" fill="#dce6ec"/><rect x="36" y="118" width="175" height="18" rx="9" fill="#dce6ec"/><rect x="36" y="152" width="220" height="18" rx="9" fill="#2a9d78"/></g>
+<rect x="830" y="240" width="680" height="480" rx="32" fill="#fff" stroke="#dce6ec" stroke-width="3"/>
+<g font-family="Arial"><text x="880" y="310" font-size="30" font-weight="900" fill="#0f1f2f">Ein Ablauf statt fünf Einzellösungen</text>
+<g transform="translate(900 385)"><circle r="46" fill="#eaf5f8"/><text y="10" text-anchor="middle" font-size="34">▣</text><text y="85" text-anchor="middle" font-size="20" font-weight="800" fill="#0f1f2f">Auftrag</text></g>
+<text x="1025" y="398" font-size="34" fill="#1789a8">→</text>
+<g transform="translate(1135 385)"><circle r="46" fill="#eaf5f8"/><text y="10" text-anchor="middle" font-size="34">●</text><text y="85" text-anchor="middle" font-size="20" font-weight="800" fill="#0f1f2f">Fotos</text></g>
+<text x="1260" y="398" font-size="34" fill="#1789a8">→</text>
+<g transform="translate(1370 385)"><circle r="46" fill="#eaf5f8"/><text y="9" text-anchor="middle" font-size="24" font-weight="900" fill="#0d6784">PDF</text><text y="85" text-anchor="middle" font-size="20" font-weight="800" fill="#0f1f2f">Bericht</text></g>
+<rect x="880" y="520" width="570" height="110" rx="20" fill="#f3f8fa"/><text x="915" y="562" font-size="22" font-weight="800" fill="#0d6784">✓ Daten sofort vollständig</text><text x="915" y="598" font-size="22" font-weight="800" fill="#0d6784">✓ Weniger Rückfragen und Nacharbeit</text></g>
+</svg>
