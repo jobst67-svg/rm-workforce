@@ -97,7 +97,7 @@ nav?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classL
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js"></script>
 <script>
-(async()=>{try{const u=await getRmUser();if(u){document.getElementById("zaehlerbuchBtn").href="/zaehlerbuch.html";document.getElementById("navZaehlerbuch").href="/zaehlerbuch.html";const a=document.getElementById("authLink");a.textContent="Abmelden";a.href="#";a.onclick=()=>{rmLogout();return false}}}catch(e){console.error(e)}})();
+(async()=>{try{const u=await getRmUser();if(u){const z=document.getElementById("zaehlerbuchBtn");if(z)z.href="/zaehlerbuch.html"}}catch(e){console.error(e)}})();
 </script>
 </body>
 </html>
