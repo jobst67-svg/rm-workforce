@@ -15,6 +15,22 @@
     {
       "source": "/apps/datenschutz",
       "destination": "/apps/datenschutz.html"
+    },
+    {
+      "source": "/open-house",
+      "destination": "/open-house/index.html"
+    },
+    {
+      "source": "/open-house/",
+      "destination": "/open-house/index.html"
+    },
+    {
+      "source": "/open-house/datenschutz",
+      "destination": "/open-house/datenschutz.html"
+    },
+    {
+      "source": "/open-house/impressum",
+      "destination": "/open-house/impressum.html"
     }
   ],
   "headers": [
