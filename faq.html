@@ -28,7 +28,16 @@
 .source a,.book-link{color:var(--brand);font-weight:800;text-decoration:none}
 .source a:hover,.book-link:hover{text-decoration:underline}
 .book-box{margin-top:14px;padding:15px 16px;border:1px solid #e5d7c7;background:#fffaf3;border-radius:14px}
-@media(max-width:700px){.hero{padding:22px}.faq summary{padding:18px 48px 18px 18px}.answer{padding:0 18px 19px}}.faq details.ehz-topic{overflow:visible;clip-path:none}.faq details.ehz-topic .answer{overflow:visible}.ehz-figure{margin:18px 0 24px}.ehz-sticky{position:sticky;top:80px;z-index:15;background:#fff;padding:8px;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(18,45,63,.12)}.ehz-sticky img{max-height:min(40vh,350px);object-fit:contain}.ehz-sticky figcaption{font-size:.75rem}@media(max-width:700px){.ehz-sticky{top:76px;margin:10px -8px 16px;padding:5px;border-radius:10px}.ehz-sticky img{max-height:29vh}}.ehz-figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:16px}.ehz-figure figcaption{font-size:.85rem;color:var(--muted);margin-top:7px}.ehz-explain{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ehz-explain section{padding:15px;border:1px solid var(--line);border-radius:14px;background:#f8fbfc}.ehz-explain h3{margin:0 0 8px;color:var(--ink);font-size:1rem;line-height:1.4}.ehz-explain h3 span{display:inline-grid;place-items:center;background:#168c66;color:white;border-radius:50%;width:28px;height:28px;margin-right:7px}.ehz-explain p{margin:0}@media(max-width:700px){.ehz-explain{grid-template-columns:1fr}}</style>
+@media(max-width:700px){.hero{padding:22px}.faq summary{padding:18px 48px 18px 18px}.answer{padding:0 18px 19px}}.faq details.ehz-topic{overflow:visible;clip-path:none}.faq details.ehz-topic .answer{overflow:visible}.ehz-figure{margin:18px 0 24px}.ehz-sticky{position:sticky;top:80px;z-index:15;background:#fff;padding:8px;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(18,45,63,.12)}.ehz-sticky img{max-height:min(40vh,350px);object-fit:contain}.ehz-sticky figcaption{font-size:.75rem}@media(max-width:700px){.ehz-sticky{top:76px;margin:10px -8px 16px;padding:5px;border-radius:10px}.ehz-sticky img{max-height:29vh}}.ehz-figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:16px}.ehz-figure figcaption{font-size:.85rem;color:var(--muted);margin-top:7px}.ehz-explain{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ehz-explain section{padding:15px;border:1px solid var(--line);border-radius:14px;background:#f8fbfc}.ehz-explain h3{margin:0 0 8px;color:var(--ink);font-size:1rem;line-height:1.4}.ehz-explain h3 span{display:inline-grid;place-items:center;background:#168c66;color:white;border-radius:50%;width:28px;height:28px;margin-right:7px}.ehz-explain p{margin:0}@media(max-width:700px){.ehz-explain{grid-template-columns:1fr}}
+/* Test: FAQ-Schrift vier Stufen größer (ca. +4 px), ohne die große Hauptüberschrift zu vergrößern */
+.hero p{font-size:calc(1.07rem + 4px)}
+.faq summary{font-size:calc(1.05rem + 4px);line-height:1.45}
+.answer{font-size:calc(1rem + 4px);line-height:1.7}
+.note{font-size:calc(.93rem + 4px)}
+.topic-label{font-size:calc(.82rem + 4px)}
+.source{font-size:calc(.88rem + 4px)}
+.ehz-figure figcaption{font-size:calc(.85rem + 4px)}
+</style>
 <link rel="stylesheet" href="/site-nav.css">
 </head>
 <body><main class="page"><div class="wrap">
