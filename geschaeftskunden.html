@@ -110,5 +110,9 @@ nav?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classL
 (async()=>{try{await getRmUser()}catch(e){console.error(e)}})();
 </script>
 <script src="/site-nav.js" defer></script>
+<script type="module">
+import { inject } from 'https://cdn.jsdelivr.net/npm/@vercel/analytics@1/dist/index.js';
+inject();
+</script>
 </body>
 </html>
