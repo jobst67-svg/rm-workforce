@@ -31,6 +31,10 @@
     {
       "source": "/open-house/impressum",
       "destination": "/open-house/impressum.html"
+    },
+    {
+      "source": "/strom",
+      "destination": "/rm-workforce-stromcheck.html"
     }
   ],
   "headers": [
