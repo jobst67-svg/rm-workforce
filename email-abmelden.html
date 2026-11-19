@@ -55,5 +55,9 @@
     form.addEventListener('submit',async(event)=>{event.preventDefault();message.className='msg';if(!email.checkValidity()){message.textContent='Bitte gib eine gültige E-Mail-Adresse ein.';message.className='msg show error';email.focus();return}button.disabled=true;button.textContent='Abmeldung wird gespeichert …';try{const response=await fetch('/api/email-unsubscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,website:website.value})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Die Abmeldung ist gerade nicht möglich.');message.textContent='Erledigt. Für diese E-Mail-Adresse werden keine freiwilligen RM-Workforce-Updates mehr versendet.';message.className='msg show ok';form.reset()}catch(error){message.textContent=error.message||'Die Abmeldung ist gerade nicht möglich. Bitte versuche es später erneut.';message.className='msg show error'}finally{button.disabled=false;button.textContent='Von E-Mail-Updates abmelden'}});
   </script>
 <script src="/site-nav.js" defer></script>
+<script type="module">
+import { inject } from 'https://cdn.jsdelivr.net/npm/@vercel/analytics@1/dist/index.js';
+inject();
+</script>
 </body>
 </html>
